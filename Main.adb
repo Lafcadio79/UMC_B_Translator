@@ -9,6 +9,7 @@ with Ada.Strings;
 with Ada.Command_Line;
 with Ada.Strings.Fixed;
 with Ada.Characters.Handling;
+
 procedure Main is
    -- enable the use of the imported libraries (both predefined and local)
    use Flags;
