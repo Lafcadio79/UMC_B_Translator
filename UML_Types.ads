@@ -1,4 +1,4 @@
--- Ada local libraries
+-- local libraries
 with Ada.Text_IO;
 with Ada.Strings;
 with Ada.Containers;
