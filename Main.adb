@@ -1,4 +1,4 @@
--- predefined UMC libraries (not to be modified!)
+-- predefined libraries (not to be modified!)
 with Flags;
 with UML_Types;
 with UML_Parser;
