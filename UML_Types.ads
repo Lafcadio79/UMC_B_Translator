@@ -15,7 +15,7 @@ package UML_Types is
    use Ada.Strings;
    use Ada.Text_IO;
    use Ada.Containers;
-
+   
    --
    -- pragma Elaborate_Body;
    --
@@ -38,7 +38,7 @@ package UML_Types is
    IntNullObject           : constant Integer := ObjectBase;      -- was 0
    IntEmptyStruct          : constant Integer := StructBase - 1;  -- was 0; (must be item #1 in Vectors_DB)
    IntUndefinedValue       : constant Integer := StructBase +1;   -- Notice not a vector but an int
-
+   
    --
    --UndefinedStructure: Constant Integer := StructBase;
    --
@@ -51,18 +51,18 @@ package UML_Types is
                        Objmatrix,Boolmatrix, Nummatrix, Matrix,
                        Objcube,Boolcube,Numcube, Cube);
 
+   --
    subtype  TypeInfo is Natural;  -- for obj types, if positive, is the Class index
-
+   --
    type Basic_Value is record
       Code:Integer :=0;
       Kind: Value_Kind := Undefined;
    end record;
-
+   --
    type SystemVar;
    type SystemVar_Ref is access SystemVar;
    type Vars_Table is array (Positive range <>) of SystemVar_Ref;
    type Vars_Table_Ref is access Vars_Table;
-
    No_Vars: Vars_Table := (1..0 => null);
 
    --
@@ -196,15 +196,15 @@ package UML_Types is
    -- il Kind della systemvar e' definito da Systemvar-initial.kind
    type SystemVar is record
       Name: String_Ref;
-      Global_Num_Key: Positive;    -- All_Vars(V.Num_Mey) = V    --- UNUSED !!!!!!!
+      Global_Num_Key: Positive;   --    All_Vars(V.Num_Mey) = V    --- UNUSED !!!!!!!
       Local_Num_Key: Positive;
-      Chart: Natural :=0;          -- index in All_Charts
+      Chart: Natural :=0;          --  index in All_Charts
       Observed: Boolean := False;
-      Initial: SimpleIntExpr_Ref;  -- constant integer literal or chartname
+      Initial: SimpleIntExpr_Ref;    --- constant integer literal or chartname
       Kind: Value_Kind := Undefined;
-      TypeInfo: Natural :=0;       -- Kind=Object -> TypeInfo=Class index in All_Classes
-      StaticSize: Integer := -1;   -- v: int[20] -- statically sized,
-      NatBound: Integer := 255;    -- v: 0..n
+      TypeInfo: Natural :=0;  -- Kind=Object -> TypeInfo=Class index in All_Classes
+      StaticSize: Integer := -1;  --  v: int[20] -- statically sized,
+      NatBound: Integer := 255;  --   v: 0..n
    end record;
 
    -- STATES:  SIMPLE, COMPOSITE, CONCURRENT, REGION,
@@ -213,7 +213,7 @@ package UML_Types is
    type States_Table is  array (Positive range <>) of State_Ref;
    type States_Table_Ref is access States_Table;
 
-   -- SYSTEM EVENTS: as declared by: SystemEvents r2,a2,e1,e2,f1,r1,e(x), a(x)
+   -- SYSTEM EVENTS: as declared by: SystemEvents  r2,a2,e1,e2,f1,r1,e(x), a(x)
    type Event;
    type Event_Ref is access Event;
    type Events_Table is array (Positive range <>) of Event_Ref;
@@ -235,14 +235,14 @@ package UML_Types is
      array (Positive range <>) of Triggered_Transitions;
    type TransitionsCatalogue_Ref is access TransitionsCatalogue;
 
-   type Event_Kind is (Signal, Operation, Undefined);  -- NEEDED UNDEFINED
-   -- SYSTEM EVENTS come da appropriata dichiarazione, riferiti
-   -- all'interno delle transitions come parte del trigger e della action
+   type Event_Kind is (Signal, Operation, Undefined);  --  NEEDED  UNDEFINED
+   -- SYSTEM EVENTS come da appropriata dichiarazione,  riferiti
+   --  all'interno delle transitions come parte del trigger e della action
    type Event is record
       Name: String_Ref;
-      Num_Key: Natural := 1;                -- indice dell'evento nella tabella All_Events
-      Params: EventVars_Table_Ref;          -- a 0 or positively sized table.
-      Observed: Boolean := True;            -- TO BE MOVED
+      Num_Key: Natural := 1;     -- indice dell'evento nella tabella All_Events
+      Params: EventVars_Table_Ref;  -- a 0 or positively sized table.
+      Observed: Boolean := True;   -- TOBEMOVED
       Return_Type: Value_Kind := Undefined;
       Kind: Event_Kind := Undefined;
       -- TypeInfo:Natural :=0  -- TO BE ADDED
@@ -252,16 +252,16 @@ package UML_Types is
    --
    Null_Event: constant Event_Ref :=
      new Event'(Name => new String'("-"),
-                -- Chart => 0,
+                  --              Chart => 0,
                 Num_Key => 1,
                 Params => new EventVars_Table'(No_EventVars),
                 Observed => False,
                 Return_Type => Undefined,
                 Kind => Signal);
    --
-   -- OUTChart.ChartEvents(1) = Null_Event
-   -- ERRChart.ChartEvents(2) = Lost_Event
-   -- OUTChart.ChartEvents(3) = Assign_Event
+   --  OUTChart.ChartEvents(1) = Null_Event
+   --  ERRChart.ChartEvents(2) = Lost_Event
+   --  OUTChart.ChartEvents(3) = Assign_Event
    --
    Lost_Event: constant Event_Ref :=
      new Event'(Name=> new String'("lostevent"),
@@ -281,16 +281,18 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    Runtime_Error_Event: constant Event_Ref :=
      new Event'(Name=> new String'("Runtime_Error"),
                 Num_Key => 4,
                 Params => new EventVars_Table'(
-                    -- new EventVar'(new String'("val1"),1,Undefined,0),
+                    --        new EventVar'(new String'("val1"),1,Undefined,0),
                   1 => new EventVar'(new String'("val2"),2,Undefined,0)),
-                -- Params => new EventVars_Table(1..0),
+                --                Params => new EventVars_Table(1..0),
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturn_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 5,
@@ -299,6 +301,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnInt_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 6,
@@ -307,6 +310,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnObj_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 7,
@@ -315,6 +319,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnBool_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 8,
@@ -323,6 +328,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnIntV_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 9,
@@ -331,6 +337,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnObjV_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 10,
@@ -339,6 +346,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnBoolV_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 11,
@@ -347,6 +355,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnIntM_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 12,
@@ -355,6 +364,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnObjM_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 13,
@@ -363,6 +373,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnBoolM_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 14,
@@ -371,6 +382,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnIntC_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 15,
@@ -379,6 +391,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnObjC_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 16,
@@ -387,6 +400,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    OpReturnBoolC_Event: constant Event_Ref :=
      new Event'(Name=> new String'("return"),
                 Num_Key => 17,
@@ -395,6 +409,7 @@ package UML_Types is
                 Observed => True,
                 Return_Type => Undefined,
                 Kind => Signal);
+   --
    Runtime_Error_Event2: constant Event_Ref :=
      new Event'(Name=> new String'("Runtime_Error"),
                 Num_Key => 18,
@@ -411,15 +426,15 @@ package UML_Types is
       The_Target: SimpleIntExpr_Ref;
       The_Args: umlExpr_Table_Ref;  -- a 0 or positively sized table
    end record;
-
+   --
    type Events_Instance_Table is array (Positive range <>) of Event_Instance;
    type Events_Instance_Table_Ref is access Events_Instance_Table;
    Empty_Events_Instance_Table: Events_Instance_Table(1..0);
-   -- := (1..0 => (null,0,null));
+   ------ := (1..0 => (null,0,null));
 
    -- TRANSITION GUARDS
-   -- subtype Guard_Expr is BoolBoolExpr;
-   -- type Guard_Ref is access Guard_Expr;
+   --subtype Guard_Expr is BoolBoolExpr;
+   --type Guard_Ref is access Guard_Expr;
 
    -- TRANSITION ACTION(S)
    -- come appare in   ... -(../event(x+1))-> ...
@@ -428,63 +443,66 @@ package UML_Types is
    type Actions_Table is array (Positive range <>) of Action_Ref;
    type Actions_Table_Ref is access Actions_Table;
    No_Actions: constant Actions_Table := (1..0 => null);
+   --
    --   Action_Kind = Call  is EVER USED?????? or opcalls are just mapped in Signals?
    type Action_Kind is (Signal, Call, Function_Call, Assignment, OpReturn,
                         Whileloop, Exitloop, Forloop, VarDecl, Conditional);
    type Action is record
       Kind: Action_Kind := Signal;
-      Signalled_Event: Event_Instance; -- return, signal, opcall, funcall,
+      Signalled_Event: Event_Instance;    -- return, signal, opcall, funcall,
       -- Assignment_Left is the local reference to the SystemVar. (index in localvars)
-      -- references to Eventvars have a negative value (index in tenv)
-      Assignment_Left: Integer;        -- positive values and indexes of Class Vars
+      --                references to Eventvars have a negative value (index in tenv)
+      Assignment_Left: Integer;     -- positive values and indexes of Class Vars
       -- negative values are indexes of Transition Vars
       Assignment_Left_Image: string_ref;
-      -- Assignment_Left_Index: IntExpr_Ref;
+      --   Assignment_Left_Index: IntExpr_Ref;
       Assignment_Left_Indexes: umlExpr_Table_Ref := new umlExpr_Table'(Empty_umlExpr_Table);
       Assignment_Right: umlExpr_Ref;
-      LoopCond: BoolBoolExpr_Ref;      -- while loop
-      LoopBody: Actions_Table_Ref;     -- while loop,  for loop
-      TVar: EventVar_Ref;              -- Kind = Vardecl
-      TValue: umlExpr_Ref;             -- Kind = Vardecl
-      IfCond: BoolBoolExpr_Ref;        -- Kind = Conditional
-      ThenBody:  Actions_Table_Ref;    -- Kind = Conditional
-      ElseBody: Actions_Table_Ref;     -- Kind = Conditional
-      For_Var: EventVar_Ref;           -- for loop
-      For_VarMin: EventVar_Ref;        -- for loop
-      For_VarMax: EventVar_Ref;        -- for loop
-      For_Min: IntExpr_Ref;            -- for loop
-      For_Max: IntExpr_Ref;            -- for loop
+      LoopCond: BoolBoolExpr_Ref;    -- while loop
+      LoopBody: Actions_Table_Ref;   -- while loop,  for loop
+      TVar: EventVar_Ref;    -- Kind = Vardecl
+      TValue: umlExpr_Ref;   -- Kind = Vardecl
+      IfCond: BoolBoolExpr_Ref;   -- Kind = Conditional
+      ThenBody:  Actions_Table_Ref;  -- Kind = Conditional
+      ElseBody: Actions_Table_Ref;  -- Kind = Conditional
+      For_Var: EventVar_Ref;  -- for loop
+      For_VarMin: EventVar_Ref;  -- for loop
+      For_VarMax: EventVar_Ref;  -- for loop
+      For_Min: IntExpr_Ref; -- for loop
+      For_Max: IntExpr_Ref; -- for loop
       Env_Depth: Natural :=0;
    end record;
 
-   -- FULL STATES DEFINITION
-   -- stateref are relocatable !!! I.e., ChartStates can be simple copied !!!
+   --  FULL STATES DEFINITION
+   -- stateref are relocatable !!!  I.e.  ChartStates can be simple copied !!!(
    type State_Kind is (Parallel, Composite, Simple);
    type State is record
       Kind: State_Kind := Simple;
       SubStates: States_Table_Ref := new States_Table(1..0);
       LocalTransitions: Transitions_Table_Ref
-        := new Transitions_Table(1..0);   -- only for Composite States
+        := new Transitions_Table(1..0);  -- only for Composite States
       OutgoingTransitions: TransitionsCatalogue_Ref :=
         new TransitionsCatalogue(1..0);
       FullName: String_Ref;
       Parent: State_Ref;
       FirstRuntimePosition: Natural :=0;  -- set by uml_model  LOCAL to the chart
       LastRuntimePosition: Natural :=0;   -- set by uml_model  LOCAL to the chart
-      Depth: Positive := 1;               -- Parallel states are considered for the depth
-      Priority: Positive := 1;            -- Parallel States are NOT considered
-      Ancestors: States_Table_Ref;        -- set by Set_Ancestors  (relocatable)
-      Num_Key: Positive;                  -- local ref
-      -- Chart: Natural :=0;
-      Finals: States_Table_Ref;           -- set by Set_Finals for composite states
-      Deferred: Events_Table_Ref := new Events_Table(1..0); -- list of deferred events
+      Depth: Positive := 1;   --  Parallel states are considered for the depth
+      Priority: Positive := 1;--  Parallel States are NOT considered
+      Ancestors: States_Table_Ref;    -- set by Set_Ancestors  (relocatable)
+      Num_Key: Positive;    -- local ref
+      --  Chart: Natural :=0;
+      Finals: States_Table_Ref;  -- set by Set_Finals for composite states
+      Deferred: Events_Table_Ref := new Events_Table(1..0);   -- list of deferred events
       EntryActions: Actions_Table_Ref;
       ExitActions: Actions_Table_Ref;
    end record;
 
+
    type Transition_Kind is (Simple, Internal, Synch, Join, Fork);
    type Transition is record
       Label: String_Ref;
+      Comms: String_Table_ref := Empty_String_Table_Ref;
       Trigger: Event_Ref;
       Guard:  Guard_Ref;
       Actions: Actions_Table_Ref;
@@ -492,46 +510,51 @@ package UML_Types is
       Target: States_Table_Ref;
       Kind: Transition_Kind := Simple;
       Owner: State_Ref;
-      Mask:  States_Table_Ref;             -- non dovrebbe essere globale, se valida per ogni
+      Mask:  States_Table_Ref;    -- non dovrebbe essere globale, se valida per ogni
       Num_Key: Positive;
    end record;
 
-   -- il tipo "Chart" è utilizzato (in modo ambiguo) per descrivere sia le classi che gli
+   --
+   -- il tipo  "Chart" e' utilizzato (in modo ambiguo) per descrivere sia le classi che gli
    -- oggetti (istanze delle classi) del sistema.
    -- Variabili di tipo "Chart" sono memorizzate sia in "All_Classes" (tabella delle classi)
-   -- sia in All_Charts (tabella degli oggetti sia passivi che attivi).
+   --   sia in All_Charts (tabella degli oggetti sia passivi che attivi).
    -- La lista degli oggetti "attivi" (dei loro indici in All_Charts) e' memorizzata in Active_Objects
    -- Una dichiarazione di "Chart" crea sia una entri come class, che una come object (quindi due istanze
    --  del tipo Chart)
+   --
    type Chart is record
-      Name: String_Ref;                  -- relocatable
-      Chart_Position: Natural := 0;      -- index in Active_Charts
-      Top_State_Num: Integer := -1;      -- set to 1 for active charts, (i.e. charts with vars or states)
-                                         -- Top_State_Num=0 indica una classe passiva (senza transizioni),
-                                         -- eventualmente una classe con solo attributi pubblicamente accessibili,
-                                         -- che e' eventualmente possibile estendere in un tempo successivo con un body.
-                                         --  (che puo aggiungere nuovi attributi e nuovo behavior)
-                                         -- Top_State_Num=1 indica una classe di cui e' stato definito il body
-                                         -- e quindi la cui definizione e' congelata.
-                                         -- Top_State_Num=-1  indica un placeholder di class (ancora da definire)
-      ChartParent: Natural :=0;          -- the parent (or class) definition for the child
+      Name: String_Ref;            -- relocatable
+      Comms: String_Table_Ref := Empty_String_Table_Ref;            -- relocatable
+      Chart_Position: Natural := 0;  -- index in Active_Charts
+      Top_State_Num: Integer := -1; -- set to 1 for active charts, (i.e. charts with vars or states)
+      --  Top_State_Num=0 indica una classe passiva (senza transizioni),
+      --  eventualmente una classe con solo attributi pubblicamente accessibili,
+      --  che e' eventualmente possibile estendere in un tempo successivo con un body.
+      --  (che puo aggiungere nuovi attributi e nuovo behavior)
+      -- Top_State_Num=1 indica una classe di cui e' stato definito il body
+      --   e quindi la cui definizione e' congelata.
+      --Top_State_Num=-1  indica un placeholder di class (ancora da definire)
+      ChartParent: Natural :=0;    -- the parent (or class) definition for the child
       ChartVars: Vars_Table_Ref := new Vars_Table'(No_Vars);    -- SPECIFIC
       ChartEvents: Events_Table_Ref := new Events_Table(1..0);  -- relocatable
-      ObservedEvents: Bool_Table_Ref := new Bool_Table(1..0);   -- SPECIFIC
+      ObservedEvents: Bool_Table_Ref := new Bool_Table(1..0);  -- SPECIFIC
       ChartStates: States_Table_Ref:= new States_Table(1..0);   -- relocatable
       ChartTransitions: Transitions_Table_Ref := new Transitions_Table(1..0);
-      ChartStates_Base: Natural := 0;    -- set by Clone ..
-      ChartInterferences: BoolMat_Ref;   -- shared among all objects of the class
+      ChartStates_Base: Natural := 0;   -- set by Clone ..
+      ChartInterferences: BoolMat_Ref;    -- shared among all objects of the class
       NiceParallelism: Boolean := False;
       IsRandom: Boolean := False;
    end record;
 
    type Chart_Table is array (Positive range <>) of Chart;
    type Chart_Table_Ref is access Chart_Table;
+   --
    -- Initialized by the parser (Parse)
+   --
 
    type Binding is record
-      Attribute: String_Ref;       --  ChartVars(The_Var).Name
+      Attribute: String_Ref;   --  ChartVars(The_Var).Name
       Value_Image: String_Ref;     --  Inital_Expr.Image
    end record;
 
@@ -539,7 +562,7 @@ package UML_Types is
    type Bindings_Table_Ref is access Bindings_Table;
 
    type UML_Object is record
-      The_Object: Natural :=0;     -- index in All_Charts
+      The_Object: Natural :=0;  -- index in All_Charts
       Bindings: Bindings_Table_Ref := new Bindings_Table (1..0);
    end record;
 
@@ -550,14 +573,16 @@ package UML_Types is
    UML_Configuration: Objects_Table_Ref := new Objects_Table(1..0);
    pragma Volatile(UML_Configuration);
 
-   -- The top-level state (the first declared)
-   -- This_UML_Object: State_Ref
-
-   -- All Charts are all the chart explicilty declared by Chart daclarations
-   -- and (called active charts) and all charts mentioned of prefix of signals
-   -- (however still not being var names).  E.g.  OUT,  ERR of just the names
-   -- of other entities not currently packaged inside the system.
+   --  The top-level state (the first declared)
+   -- This_UML_Object: State_Ref;
+   --
+   --  All Charts are all the chart explicilty declared by Chart daclarations
+   --  and (called active charts) and all charts mentioned of prefix of signals
+   --  (however still not being var names).  E.g.  OUT,  ERR of just the names
+   --  of other entities not currently packaged inside the system.
+   --
    OutChart: constant Chart  := (Name => new String'("OUT"),
+                                 Comms => Empty_String_Table_Ref,
                                  Top_State_Num => 0,
                                  Chart_Position => 0,
                                  Chartparent => 1,
@@ -572,6 +597,7 @@ package UML_Types is
                                  IsRandom => False
                                 );
    ErrChart: constant Chart   := (Name => new String'("ERR"),
+                                  Comms => Empty_String_Table_Ref,
                                   Top_State_Num => 0,
                                   Chart_Position => 0,
                                   ChartParent => 2,
@@ -586,6 +612,7 @@ package UML_Types is
                                   IsRandom => False
                                  );
    TokensChart: constant Chart   := (Name => new String'("Token"),
+                                     Comms => Empty_String_Table_Ref,
                                      Top_State_Num => 0,
                                      Chart_Position => 0,
                                      ChartParent => 3,
@@ -600,6 +627,7 @@ package UML_Types is
                                      IsRandom => False
                                     );
    OBJ_UnspecifiedError: constant Chart   := (Name => new String'("UnspecifiedError"),
+                                              Comms => Empty_String_Table_Ref,
                                               Top_State_Num => 0,
                                               Chart_Position => 0,
                                               ChartParent => 3,
@@ -615,6 +643,7 @@ package UML_Types is
                                              );
 
    OBJ_InvalidGuard: constant Chart   := (Name => new String'("InvalidGuard"),
+                                          Comms => Empty_String_Table_Ref,
                                           Top_State_Num => 0,
                                           Chart_Position => 0,
                                           ChartParent => 3,
@@ -630,6 +659,7 @@ package UML_Types is
                                          );
 
    OBJ_InvalidIndex: constant Chart   := (Name => new String'("InvalidIndex"),
+                                          Comms => Empty_String_Table_Ref,
                                           Top_State_Num => 0,
                                           Chart_Position => 0,
                                           ChartParent => 3,
@@ -645,6 +675,7 @@ package UML_Types is
                                          );
 
    OBJ_CodingBug: constant Chart   := (Name => new String'("UMC_Internal_Error"),
+                                       Comms => Empty_String_Table_Ref,
                                        Top_State_Num => 0,
                                        Chart_Position => 0,
                                        ChartParent => 3,
@@ -660,6 +691,7 @@ package UML_Types is
                                       );
 
    OBJ_UndefinedValue: constant Chart   := (Name => new String'("UndefinedValue"),
+                                            Comms => Empty_String_Table_Ref,
                                             Top_State_Num => 0,
                                             Chart_Position => 0,
                                             ChartParent => 3,
@@ -675,6 +707,7 @@ package UML_Types is
                                            );
 
    OBJ_InvalidTarget: constant Chart   := (Name => new String'("InvalidTarget"),
+                                           Comms => Empty_String_Table_Ref,
                                            Top_State_Num => 0,
                                            Chart_Position => 0,
                                            ChartParent => 3,
@@ -690,6 +723,7 @@ package UML_Types is
                                           );
 
    OBJ_InvalidIndexing: constant Chart   := (Name => new String'("InvalidIndexing"),
+                                             Comms => Empty_String_Table_Ref,
                                              Top_State_Num => 0,
                                              Chart_Position => 0,
                                              ChartParent => 3,
@@ -727,58 +761,61 @@ package UML_Types is
    InvalidIndexing: Integer := UML_Types.ObjectBase - 10;
 
    Predefined_Charts_Count : constant Natural := All_Charts.all'Length;
-
+   --
    -- Active Charts are only those explicitly declared by "Chart" declarations
    -- (for which an explicit Top State has been declared)
    --  (it is table of Chart indexes, extended with each new Current_Chart)
-   Active_Charts: Num_Table_Ref := new Num_Table(1..0);  --!!!!
-
+   --
+   Active_Charts: Num_Table_Ref := new Num_Table(1..0);                          --!!!!
    pragma Volatile(Active_Charts);
 
    function Is_Active_Chart(The_Chart: Natural) return Boolean;
 
    -- The initial systemevent Queue;
    -- This_Initial_Queue: Events_Instance_Table_Ref :=  -- a 0 or >0 sized table
-   -- new Events_Instance_Table'(Empty_Events_Instance_Table);
-   -- type Evolution_Data is record
+   --      new Events_Instance_Table'(Empty_Events_Instance_Table);
+
+   --  type Evolution_Data is record
    --     Source: Int64;    -- Nick in SRC_DB
    --     Selector: Natural;  -- index in All_Charts
    --     Actions: Int64;   -- Nick in Signals_DB
    --     Target: Int64;  -- Nick in SRC_DB
    --     AbstractLabels: String_Tables_Vector_Ref := Empty_String_Tables_Vector_Ref;
-   -- end record;
-   -- No_Evolution: Evolution_Data := (0,0,0,0,null);
-   -- type Evolutions_Table is array (Positive range <>) of Evolution_Data;
-   -- Empty_Evolutions_Table : Evolutions_Table := (1..0 => No_Evolution);
-   -- type Evolutions_Table_Ref is access Evolutions_Table;
+   --  end record;
+   --  No_Evolution: Evolution_Data := (0,0,0,0,null);
+   --  type Evolutions_Table is array (Positive range <>) of Evolution_Data;
+   --  Empty_Evolutions_Table : Evolutions_Table := (1..0 => No_Evolution);
+   --  type Evolutions_Table_Ref is access Evolutions_Table;
    -- procedure Free is new Ada.Unchecked_Deallocation(Evolutions_Table,Evolutions_Table_Ref);
 
    -------------------  GLOBAL DATA -----------------------
    -- The table of all the Chart Variables definition
-   -- further initialized by Parse_System_Vars
+   --  further initialized by Parse_System_Vars
    --
-   -- They exactly correspond to the Runtime vars vector
-   -- Their Num_Key is their runtime position in the runtime confuguration
+   --  They exactly correspond to the Runtime vars vector
+   --  Their Num_Key is their runtime position in the runtime confuguration
    --
    -- All_Vars_Count: Natural :=0;
-   -- All_Vars: Vars_Table_Ref := new Vars_Table'(No_Vars);
-   --
+   --All_Vars: Vars_Table_Ref := new Vars_Table'(No_Vars);
+
+
    -- The table of all system Events (parametric) definitions
-   -- further initialized bu Parse_Events
+   --  further initialized bu Parse_Events
    --
-   -- All_Events e' una lista GLOBALE a tutte le classi di
-   -- "nomi" di eventi (senza altri dati).
-   -- Quando viene elaborato un signal di una classe, il corrispondente evento
-   -- viene aggiunto alla lista (se non c'è già), inizializzato con il suo nome
-   -- ed il numero dei suoi parametri.
-   -- Quando viene elaborata una dichiarazione di classe, il corrispondento
-   -- evento viene aggiunto alla lista. Se c'è già viene verificata la
-   -- corrispondenza con il suo precedente profilo, che se incompleto (e.g.
-   -- nomi dei parametri mancanti) viene completato.
-   -- In questo caso la dichiarazione completa viene anche aggiunta alla
-   -- lista locale degli eventi della classe.
+   --  All_Events e' una lista GLOBALE a tutte le classi di
+   --   "nomi" di eventi (senza altri dati).
+   --  Quando viene elaborato un signal di una classe, il corrispondente evento
+   --  viene aggiunto alla lista (se non c'e' gia'), inizializzato con il suo nome
+   --  ed il numero dei suoi parametri.
+   --  Quando viene elaborata una dichiarazione di classe, il corrispondento
+   --  evento viene aggiunto alla lista. Se c'e' gia' viene verificata la
+   --  corrispondenza con il suo precedente profilo, che se incompleto (e.e.
+   --  nomi dei parametri mancanti) viene completato.
+   --  In questo caso la dichiarazione completa viene anche aggiunta alla
+   --  lista locale degli eventi della classe.
    --
-   -- Il campo Num_Key è l'indice dell'evento nella tabella All_
+   --  Il campo Num_Key e' l'indice dell'evento nella tabella All_Events.
+   --
    All_Events: Events_Table_Ref :=
      new Events_Table'(Null_Event, Lost_Event, Assign_Event,
                        Runtime_Error_Event,
@@ -788,12 +825,13 @@ package UML_Types is
                        OpReturnIntM_Event,OpReturnObjM_Event,OpReturnBoolM_Event,
                        OpReturnIntC_Event,OpReturnObjC_Event,OpReturnBoolC_Event,
                        Runtime_Error_Event2);
-   -- Null_Event = "-";
-   -- Lost_event= "ERR.lostevent(id)"
-   -- Assign_event= "OUT.assign(var,index, val)
+   --   Null_Event = "-";
+   --   Lost_event= "ERR.lostevent(id)"
+   --   Assign_event= "OUT.assign(var,index, val)
    pragma Volatile(All_Events);
 
    -------------------- observation utilities ----------------------
+   --
    function Eval_Literal (Id: String) return Integer;
    --
    -- Observed_Objects: Num_Table_Ref := new Num_Table(1..0); -- indexes in All_Charts
@@ -804,21 +842,26 @@ package UML_Types is
    -- function Is_Observable(Current_Chart: Natural;
    --                     This_Action: Action_Ref) return Boolean;
    -- function Is_Observable(Target, Event_key: Natural) return Boolean;
-   -- procedure HTML_Settings;
-   -- procedure TXT_Settings;
-   -- procedure Set_Parameter(Input_Line: String);
 
-   ------------------
-   -- OBSERVATIONS --
-   ------------------
+   --procedure HTML_Settings;
+   --procedure TXT_Settings;
+
+   --procedure Set_Parameter(Input_Line: String);
+
+   ---------------------------------------------------------------------------
+   --           OBSERVATIONS
+   --
    type AbstractionKind is (StateKind, ActionKind, BothKinds);
+   --
    type BinOp is (NOOP, EQ, GT, LT, LE, GE, NE, ISIN);
+   --
    type Rule_Left_Elem is record
       LTerm: String_Ref;                                  -- src
       LPartner: String_Ref;                               -- target
       LOp: String_Ref;                                    -- event /obj (inState clause)
       LMode: String_Ref;
       LArgs: String_Table_Ref;                            -- [arg1,arg2]/ (Top.S1.s2)
+      ----
       IdsL: String_Table_Ref := Empty_String_Table_Ref;   -- [obj1,var]/$v/literal/
       LeftOp: BinOp :=NOOP;                               --  EQ/NE/LT/GT/LE/GE
       IdsR: String_Table_Ref :=  Empty_String_Table_Ref;  --  [obj2,var]/$v/literal
@@ -830,13 +873,14 @@ package UML_Types is
    type Observation_Rule is record
       Kind: AbstractionKind := BothKinds;                 -- State/Action
       Left: Rule_Left_Ref;
-      RLabels: String_Table_Ref := Empty_String_Table_Ref;-- [mainlabel,aarg1,aarg2]
+      RLabels: String_Table_Ref := Empty_String_Table_Ref;--  [mainlabel,aarg1,aarg2]
    end record;
-   -- State  : inState(obj.state) and obj.var=$v -> mainlabel(aarg1,$v)
-   -- State  : obj.var1 > obj.var2 -> label(op,op,1)
-   -- Action : src:target.event<arg1,arg2> -> mainlabel(aarg1,aarg2)
-   -- Action : src:target.event!<$1,$2,*,a> -> mainlabel(event,$2,$1)
-   -- Action : $1:$2.$3!<> -> mainlabel($3,$2,$1)
+   --
+   -- State:   inState(obj.state) and obj.var=$v  ->  mainlabel(aarg1,$v)
+   -- State:   obj.var1 > obj.var2  ->  label(op,op,1)
+   -- Action:  src:target.event<arg1,arg2> -> mainlabel(aarg1,aarg2)
+   -- Action:  src:target.event!<$1,$2,*,a>   ->  mainlabel(event,$2,$1)
+   -- Action:  $1:$2.$3!<>   ->  mainlabel($3,$2,$1)
 
    type Abstractdata is record
       Labels: String_Tables_Vector_Ref := Empty_String_Tables_Vector_Ref;
@@ -868,18 +912,15 @@ package UML_Types is
                            2 => new String'("$*"))));
 
 
-   -- Observe_Transition_Labels: Boolean := False;
-   -- set by Parser  MOVED TO FLAGS
+   -- Observe_Transition_Labels: Boolean := False; -- set by Parser  MOVED TO FLAGS
    New_Observations: Observations_Table_Ref := new Observations_Table(1..0);
    All_Observations: Observations_Table_Ref;
    pragma Volatile(All_Observations);
 
-   ---------------------------------------------------------
+   --------------------------------------------
    function Has_Random_Queues(Index:Natural) return Boolean;
 
-   -----------------------------------
-   -- Print / Abstraction utilities --
-   -----------------------------------
+   --------------   Print / Abstraction utilities ----------------------------
    function Literal_Value (Literal:String) return Integer;
    function Normalized_Literal(Source: String) return String;
    function Actions_Image (These_Actions: Actions_Table) return String;
