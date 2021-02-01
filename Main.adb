@@ -22,16 +22,12 @@ procedure Main is
    use Ada.Strings.Fixed;
    use Ada.Characters.Handling;
 
-   --------------------------------------
-   -- object and variable declarations --
-   --------------------------------------
+   ------------------------------------------------------------
+   -- object, variable, procedure, and function declarations --
+   ------------------------------------------------------------
    F_Out       : File_Type;
    This_Chart  : Chart;
    UMCfilename : String_ref;
-
-   ----------------
-   -- Procedures --
-   ----------------
    
    -- procedure set_variables (SD: Natural) is separate;
    -- The procedure takes from the UMC model all the object and variable names
@@ -106,9 +102,7 @@ procedure Main is
       end loop;
    end print_varinitvalues;
 
-   ---------------
-   -- Functions --
-   ---------------
+
    -- returns the simplename fragment of a state fullname
    function Simple (full: String) return String is
       n: Natural;
