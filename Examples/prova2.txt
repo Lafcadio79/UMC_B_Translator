@@ -1,0 +1,74 @@
+Class C1 is
+Signals ss
+Vars 
+   v: 0..3 := 5;
+   x:int := 1;
+   buff := [];
+   databuff :int[4] := [];
+   z: int := 3;
+
+Behavior
+
+t1: 
+ s0 -> s1 {- / O1.ss }
+ 
+t2:
+  s1 -> s1   {ss}
+
+t3:
+s1 -> s2  {- / OUT.bb}
+
+t4:
+s2 -> s3  {- / OUT.cc; v := 17; }
+
+end;
+
+
+O1: C1  ( y -> [11,22] )
+O2: C1  ( y -> [11,22] )
+
+
+-----------------------------
+DEFINITIONS
+  SET_PREF_MAXINT == 100;
+  
+SETS
+  Prova_Signals = {ss,ww}
+  
+VARIABLES
+ O1_v, O1_x, O1_buff, O1_databuff, O1_z,
+ O2_v , O2_x, O2_buff, O2_databuff, O2_z
+
+INVARIANT 
+  O1_v: 0..3 &
+  O1_x: 0..SET_PREF_MAXINT &
+  O1_buff: seq(Prova_Signals) &
+  O1_databuff: seq(0..SET_PREF_MAXINT) &
+  O1_z: 0..SET_PREF_MAXINT
+   
+INITIALISATION 
+  v := 5;
+  x := 0;
+  buff := [];
+  databuff := []
+  
+  
+OPERATIONS
+ 
+ O1_t1 =
+   PRE true
+   THEN
+     O1_buff := O1_buff <- ss
+   END
+ END 
+ 
+ O1_t2 =
+   PRE 
+      O1_buff /= [] &
+      O1_buff first(O1_buff) = ss
+   THEN
+     O1_buff := tail(O1_buff)
+   END
+ END 
+ 
+-----------------------------
