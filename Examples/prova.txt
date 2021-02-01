@@ -1,0 +1,118 @@
+-- comm1
+-- comm2
+Class C1 is  -- BOH
+Signals ss,ww
+Vars 
+   v : 0..5 := 5;      --    <-----  ADESSO E' SUPPORTATO DAL PARSER !!!
+   x:int := 1;        --    <----    diventa SET_PREF_MININT .. SET_PREF_MAXINT
+   buff := [];        --    <----   diventa   seq(0..SET_PREF_MAXINT) 
+   databuff :int[4] := [];  -- <----  diventa   ???  array  non so la sintabssi Prob
+   z: int := 3;
+   PP: obj := O1;
+
+Behavior
+----------------
+-- T1 transition
+----------------
+t1: 
+ s0 -> s1 {- / O1.ss }
+ 
+----------------
+-- bla bla
+-- C1_T2
+----------------
+t2_discardss:
+  s1 -> s1   {ss}
+
+s1 -> s2  {- / OUT.bb}
+
+----------------
+----------------
+t4_cc:
+s2 -> s3  {- / OUT.cc ; }
+
+end;
+
+Class C2 is  -- BOH
+Signals ss,ww
+Vars 
+   v : 0..5 := 5;      --    <-----  ADESSO E' SUPPORTATO DAL PARSER !!!
+   x:int := 1;        --    <----    diventa SET_PREF_MININT .. SET_PREF_MAXINT
+   buff := [];        --    <----   diventa   seq(0..SET_PREF_MAXINT) 
+   databuff :int[4] := [];  -- <----  diventa   ???  array  non so la sintabssi Prob
+   z: int := 3;
+   PP: obj := O1;
+
+Behavior
+
+--------------------
+-- T1_C2 transition
+--------------------
+t1_ss: 
+ s0 -> s1 {- / O1.ss }
+ 
+ 
+----------------
+-- bla bla
+-- C2_T2
+----------------
+t2_dscardss:
+  s1 -> s1   {ss}
+
+
+end;
+
+
+O1: C1  (buff -> [11,22] )
+O2: C2  (buff -> [] )
+
+
+--  
+--  
+--  -----------------------------
+--  DEFINITIONS
+--    SET_PREF_MAXINT == 100;
+--    
+--  SETS
+--    Prova_Signals = {ss,ww,}     --  PER OGNI CLASSE OPPURE UNICO PER TUUTO IL SISTEMA
+--    
+--  VARIABLES
+--   O1_v, O1_x, O1_buff, O1_databuff, O1_z,
+--   O2_v , O2_x, O2_buff, O2_databuff, O2_z
+--  
+--  INVARIANT 
+--    O1_v: 0..3 &
+--    O1_x: 0..MAXINT &
+--    O1_buff: seq(Prova_Signals) &
+--    O2_buff: seq(Prova_Signals) &  -- PER OGNOI OGGETTO ...
+--    O1_databuff: seq(0..MAXINT) &
+--    O1_z: 0..MAXINT
+--     
+--  INITIALISATION 
+--    v := 5;
+--    x := 0;
+--    O1_buff := [];
+--    O1_databuff := [];
+--    O2_buff := [];
+--    O2_databuff := [];
+--    
+--    
+--  OPERATIONS
+--   
+--   O1_t1 =
+--     PRE true
+--     THEN
+--       O1_buff := O1_buff <- ss
+--     END
+--   END 
+--   
+--   O1_t2 =
+--     PRE 
+--        O1_buff /= [] &
+--        O1_buff first(O1_buff) = ss
+--     THEN
+--       O1_buff := tail(O1_buff)
+--     END
+--   END 
+--   
+--  -----------------------------
