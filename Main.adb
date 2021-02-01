@@ -22,15 +22,18 @@ procedure Main is
    use Ada.Strings.Fixed;
    use Ada.Characters.Handling;
 
-   --------------------------------------------------
-   -- object, variable, and procedure declarations --
-   --------------------------------------------------
+   --------------------------------------
+   -- object and variable declarations --
+   --------------------------------------
    F_Out       : File_Type;
    This_Chart  : Chart;
    UMCfilename : String_ref;
-	
+
+   ----------------
+   -- Procedures --
+   ----------------
    
-   --  procedure set_variables (SD: Natural) is separate;
+   -- procedure set_variables (SD: Natural) is separate;
    -- The procedure takes from the UMC model all the object and variable names
    -- (within the body of the OBJECT and VARS clauses) and returns a list of
    -- variable label prefixed with respect to the given object.
@@ -45,7 +48,7 @@ procedure Main is
          Put (This_Chart.Name.all & "_" & This_Chart.ChartVars(K).Name.all);
          if K = This_Chart.ChartVars'Last  and then
            sd = All_Charts'Last then
-            -- PROB non vuole la ','  all'ultimo name di variabile
+            -- PROB does not require the ',' after the last variable name
             New_line;
          else
             Put_line(",");
@@ -74,7 +77,7 @@ procedure Main is
          end if;
          if K = This_Chart.ChartVars'Last  and then
            sd = All_Charts'Last then
-            -- PROB non vuole la '&'  all'ultimo name di variabile
+            -- PROB does not require the '&' after the last variable type
             New_line;
          else
             Put_line(" &");
@@ -103,7 +106,10 @@ procedure Main is
       end loop;
    end print_varinitvalues;
 
-   -- returns the simplename fragment of a state fullname.
+   ---------------
+   -- Functions --
+   ---------------
+   -- returns the simplename fragment of a state fullname
    function Simple (full: String) return String is
       n: Natural;
    begin
@@ -226,10 +232,14 @@ begin
    parse(UMCfilename.all);
    -----
    
+
    -- creation of the output file
    Create(F_Out, Out_File, "prova.mch");
    -- redirect of the stdout to such file
    Set_Output(F_Out);
+   
+   Put_Line(Standard_Output, "File mch created");
+   Put_Line(Standard_Output, "Translating ...");
    
    New_Line;
    Put_line("VARIABLES ");
@@ -269,7 +279,8 @@ begin
    
    -- close of the output file
    Close(F_Out);
-   
+   Put_Line(Standard_Output, "File mch closed");   
+   Put_Line(Standard_Output, "Done!");   
 end Main;
 
 --type SystemVar is record
