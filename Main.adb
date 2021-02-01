@@ -25,17 +25,18 @@ procedure Main is
    --------------------------------------------------
    -- object, variable, and procedure declarations --
    --------------------------------------------------
-   This_Chart: Chart;
-   -- reding command line
-   UMCfilename: String_ref;
- 
+   F_Out       : File_Type;
+   This_Chart  : Chart;
+   UMCfilename : String_ref;
+	
+   
    --  procedure set_variables (SD: Natural) is separate;
    -- The procedure takes from the UMC model all the object and variable names
    -- (within the body of the OBJECT and VARS clauses) and returns a list of
    -- variable label prefixed with respect to the given object.
    --
-   -- e.g. if the set O of the objects is {O1, O2}, and the set V of variables is {a,b,c},
-   -- the result will be the cartesian product OxV, i.e., {O1_a, O1_b, O1_c, O2_a, O2_b, O2_c}
+   -- e.g. Being O = {O1, O2} the set of the objects and V={a,b,c} the set of variables,
+   -- the the procedure returns the cartesian product OxV={O1_a, O1_b, O1_c, O2_a, O2_b, O2_c}
    procedure print_varnames (SD: Natural) is
    begin
       This_Chart := All_Charts(SD);
@@ -224,6 +225,12 @@ begin
    UMCfilename := new String'(Ada.Command_Line.Argument(1)) ;
    parse(UMCfilename.all);
    -----
+   
+   -- creation of the output file
+   Create(F_Out, Out_File, "prova.mch");
+   -- redirect of the stdout to such file
+   Set_Output(F_Out);
+   
    New_Line;
    Put_line("VARIABLES ");
    for I in All_Charts'Range loop
@@ -259,6 +266,10 @@ begin
          print_transitions(I);
       end if;
    end loop;
+   
+   -- close of the output file
+   Close(F_Out);
+   
 end Main;
 
 --type SystemVar is record
