@@ -1,4 +1,4 @@
--- local variables
+-- local libraries
 with Ada.Text_IO;
 with Ada.Strings;
 with Ada.Strings.Fixed;
