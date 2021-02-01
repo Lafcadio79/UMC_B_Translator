@@ -1,15 +1,19 @@
--- local libraries
+-- local variables
 with Ada.Text_IO;
 with Ada.Strings;
 with Ada.Strings.Fixed;
+
 -- separate (Configurations.Kernel)
+
 package body UML_Types is
    -- enable the use of the imported libraries
    use Ada.Text_IO;
    use Ada.Strings;
    use Ada.Strings.Fixed;
 
-   --  MEMORY FRIENDLY
+   ----------------------
+   --  MEMORY FRIENDLY --
+   ----------------------
 
    function Append (To: String_Ref; What: String) return String_Ref is
       Tmp: String_Ref := To;
@@ -24,6 +28,7 @@ package body UML_Types is
       return Result;
    end Append;
 
+   
    function Args_Image (These_Params: EventVars_Table;
                         With_Types: Boolean := True) return String is
    begin
@@ -36,6 +41,7 @@ package body UML_Types is
       end if;
    end Args_Image;
 
+   
    function IntBoolExpr_Image (This_IntBoolExpr: IntBoolExpr) return String is
    begin
       case This_IntBoolExpr.Op is
@@ -63,6 +69,7 @@ package body UML_Types is
       end case;
    end IntBoolExpr_Image;
 
+   
    function BoolBoolExpr_Image (This_BoolBoolExpr: BoolBoolExpr) return String is
    begin
       case This_BoolBoolExpr.Kind is
@@ -79,12 +86,13 @@ package body UML_Types is
       end case;
    end BoolBoolExpr_Image;
 
+
    function SimpleIntExpr_Image (This_Simple: SimpleIntExpr) return String is
    begin
       if This_Simple.Image /= null then
          return This_Simple.Image.all;
       end if;
-      --  IS THE FOLLOWIMG EVER NEEDED? BOH
+      --  IS THE FOLLOWIMG EVER NEEDED ? BOH
       if This_Simple.Local_Variable /= 0 then
          return This_Simple.Image.all;
       elsif This_Simple.Event_Variable /= null then
@@ -104,6 +112,7 @@ package body UML_Types is
       end if;
    end SimpleIntExpr_Image;
 
+   
    function IntExpr_Image (This_IntExpr: IntExpr) return String is
    begin
       case This_IntExpr.Op is
@@ -137,6 +146,7 @@ package body UML_Types is
       end case;
    end IntExpr_Image ;
 
+   
    function IntExpr_Kind (This_IntExpr: IntExpr) return Value_Kind is
       Result: Value_Kind;
    begin
@@ -148,6 +158,7 @@ package body UML_Types is
       return Result;
    end IntExpr_Kind ;
 
+   
    function umlExpr_Kind (This_umlExpr: umlExpr) return Value_Kind is
    begin
       if This_umlExpr.umlInt /= null then
@@ -157,6 +168,7 @@ package body UML_Types is
       end if;
    end umlExpr_Kind ;
 
+   
    function umlExpr_Image (This_umlExpr: umlExpr) return String is
    begin
       if This_umlExpr.umlInt /= null then
@@ -165,9 +177,11 @@ package body UML_Types is
          return BoolBoolExpr_Image(This_umlExpr.umlBool.all);
       end if;
    end umlExpr_Image;
-
+   
+   
    -- called by Image of Action:
-   -- in case of call, the table is the slice starting at the second position
+   -- in the case of calls, the table is the slice starting at the
+   -- second position
    function Exprs_Image (These_IntExprs: IntExpr_Table) return String is
    begin
       if These_IntExprs'Length = 0  then
@@ -178,12 +192,15 @@ package body UML_Types is
          return IntExpr_Image(These_IntExprs(These_IntExprs'First).all) & "," &
            Exprs_Image(These_IntExprs(These_IntExprs'First+1 ..
                          These_IntExprs'Last));
-
       end if;
    end Exprs_Image;
 
+   
+   -------------------------
    -- called by Image of Action:
-   --  in the case of calls, the table is the slice starting at the second position
+   --  in the case of calls, the table is the slice starting at the
+   --   second position
+   -------------------------
    function Exprs_Image (These_IntExprs: umlExpr_Table) return String is
    begin
       if These_IntExprs'Length = 0  then
@@ -194,9 +211,11 @@ package body UML_Types is
          return umlExpr_Image(These_IntExprs(These_IntExprs'First).all) & "," &
            Exprs_Image(These_IntExprs(These_IntExprs'First+1 ..
                          These_IntExprs'Last));
+
       end if;
    end Exprs_Image;
 
+   
    function Target_Image (This_Instance: Event_Instance) return String is
    begin
       if This_Instance.The_Target.Literal_Value /= -1 then
@@ -231,8 +250,9 @@ package body UML_Types is
       end if;
    end SignalAct_Image;
 
-   -- Notice that Call actions has an additional first parameter
-   -- (i.e. the caller) which should not be displayed
+   
+   -- Notice that Call actions have an additional first parameter
+   -- (the caller) which should not be displayed
    function Action_Image (This_Action: Action) return String is
       This_Event: Event_Instance;
       This_Target: SimpleIntExpr_Ref;
@@ -241,8 +261,11 @@ package body UML_Types is
    begin
       if This_Action.Kind = Exitloop then
          return "exit";
+         --
       elsif This_Action.Kind = Conditional then
+         --
          --   if  <cond>  { list } else {list}
+         --
          if This_Action.ElseBody.all'length > 0 then
             Prefix :=
               new String'("if " & BoolBoolExpr_Image(This_Action.IfCond.all)  &
@@ -264,22 +287,30 @@ package body UML_Types is
             Free(Prefix);
             return Result;
          end;
+         --
       elsif This_Action.Kind = WhileLoop then
+         --
          --   while cond {  }
+         --
          Prefix :=
            new String'("while " &
                          BoolBoolExpr_Image(This_Action.LoopCond.all)  &
                          " {" &
                          Actions_Image(This_Action.LoopBody.all(1..This_Action.LoopBody.all'length)) &
-                         "}" );    --  NO MORE  skip the last Endloop introduced by the parser
+                         "}" );    --  NOMORE  skip the last Endloop intyroduced by the parser
+         --
          declare
             Result: String := Prefix.all;
          begin
             Free(Prefix);
             return Result;
          end;
+         --
+
       elsif This_Action.Kind = ForLoop then
+         --
          --   for v in min .. max {  }
+         --
          Prefix :=
            new String'("for " & This_Action.For_Var.Name.all  &  " in " &
                          IntExpr_Image(This_Action.For_Min.all) &
@@ -287,15 +318,19 @@ package body UML_Types is
                          IntExpr_Image(This_Action.For_Max.all) &
                          " { " &
                          Actions_Image(This_Action.LoopBody.all(1..This_Action.LoopBody.all'length)) &
-                         "}" );    --  NO MORE  skip the last Endloop introduced by the parser
+                         "}" );    --  NOMORE  skip the last Endloop intyroduced by the parser
+         --
          declare
             Result: String := Prefix.all;
          begin
             Free(Prefix);
             return Result;
          end;
+         --
       elsif This_Action.Kind = VarDecl then
+         --
          --  tvar: tttype;   var: ttype[];
+         --
          Prefix := new String'(This_Action.TVar.Name.all);
          if  This_Action.TVar.Kind  = Number then
             Prev := Prefix;
@@ -332,6 +367,7 @@ package body UML_Types is
             end if;
             Free (Prev);
          end if;  -- Kind = ...
+         --
          if  This_Action.TValue /= null then
             Prev := Prefix;
             Prefix := new String'(Prefix.all &
@@ -339,23 +375,31 @@ package body UML_Types is
             Free (Prev);
          end if;
          return Prefix.all;
+         --
       elsif This_Action.Kind = Assignment then
+         --
          -- Assignment
+         --
          return This_Action.Assignment_Left_Image.all &
            ":=" & umlExpr_Image(This_Action.Assignment_Right.all);
+         --
       end if;
+      --
       -- self.event(args)    -- self can be omitted
       -- OUT.event(Args)
       -- CHART.event(args)   -- CHART can be omitted if only active
       -- var.event(args)
       -- eventvar.event(args)
+      --
       if  This_Action.Kind = Signal  or else
         This_Action.Kind =  Call  then
+         --
          -- self.event(args)    -- self can be omitted
          -- OUT.event(Args)
          -- CHART.event(args)   -- CHART can be omitted if only active
          -- var.event(args)
          -- eventvar.event(args)
+         --
          This_Event := This_Action.Signalled_Event;
          This_Target := This_Event.The_Target;
          if This_Target.Event_Variable /= null then
@@ -367,10 +411,11 @@ package body UML_Types is
            Active_Charts.all'Length > 1 then
             Prefix := new String'(This_Target.Image.all);
          elsif This_Target.Image.all ="self" then
-            Prefix := new String'(This_Target.Image.all);  --- >> NEW NEW
+            Prefix := new String'(This_Target.Image.all);  --- >> NEW NEW 
          elsif This_Target.Literal_Value in All_Charts.all'Range  then
             Prefix := new String'(All_Charts(This_Target.Literal_Value).Name.all);
          end if;
+         --
          if This_Action.Kind = Signal and then
            Prefix /= null and then This_Event.The_Args.all'Length = 0 then
             Prev := Prefix;
@@ -382,6 +427,7 @@ package body UML_Types is
                Free(Prefix);
                return Result;
             end;
+            --
          elsif This_Action.Kind = Call and then
            Prefix /= null and then This_Event.The_Args.all'Length = 1 then
             Prev := Prefix;
@@ -393,12 +439,15 @@ package body UML_Types is
                Free(Prefix);
                return Result;
             end;
+            --
          elsif This_Action.Kind = Signal and then
            Prefix = null and then This_Event.The_Args.all'Length = 0 then
             return This_Event.The_Event.Name.all;
+            --
          elsif This_Action.Kind = Call and then
            Prefix = null and then This_Event.The_Args.all'Length = 1 then
             return This_Event.The_Event.Name.all;
+            --
          elsif This_Action.Kind = Signal and then
            Prefix /= null and then This_Event.The_Args.all'Length > 0 then
             Prev := Prefix;
@@ -412,6 +461,7 @@ package body UML_Types is
                Free(Prefix);
                return Result;
             end;
+            --
          elsif This_Action.Kind = Call and then
            Prefix /= null and then This_Event.The_Args.all'Length > 1 then
             Prev := Prefix;
@@ -428,6 +478,7 @@ package body UML_Types is
                Free(Prefix);
                return Result;
             end;
+            --
          else
             return  This_Event.The_Event.Name.all &
               "(" &
@@ -435,8 +486,11 @@ package body UML_Types is
               ")";
          end if;
       end if;
+      --
       if This_Action.Kind = Function_Call then
+         --
          --  Function_Call     "  var :=   target.event (args)
+         --
          Prefix := new String'(This_Action.Assignment_Left_Image.all &
                                  ":=" & This_Action.Signalled_Event.The_Target.Image.all &
                                  "." & This_Action.Signalled_Event.The_Event.Name.all);
@@ -453,6 +507,7 @@ package body UML_Types is
             return Result;
          end;
       end if;
+      --
       if This_Action.Kind = OpReturn then
          if This_Action.Signalled_Event.The_Args(1) = null then
             return "return";
@@ -462,6 +517,7 @@ package body UML_Types is
               ")" ;
          end if;
       end if;
+      --
       if Runtime_Errors_Enabled then
          Put_Line(Current_Error,
                   "UMC Runtime_Error! Undefined kind of action in Action_Image");
@@ -471,6 +527,7 @@ package body UML_Types is
       return "Runtime_Error";
    end Action_Image;
 
+   
    function Actions_Image (These_Actions: Actions_Table) return String is
    begin
       if These_Actions'Length = 0  then
@@ -483,11 +540,13 @@ package body UML_Types is
       end if;
    end Actions_Image;
 
+   
    procedure Print_Transition (This: Transition_Ref) is
    begin
       Put (Transition_Image(This));
    end;
 
+   
    function Transition_Label (This: Transition_Ref) return String is
    begin
       if This.Label= null or else This.Label.all'Length=0 then
@@ -501,6 +560,7 @@ package body UML_Types is
          return This.Label.all;
       end if;
    end Transition_Label;
+
 
    function Dot_Format(Source:String) return String is
       Tmp: String(1..10000);
@@ -519,6 +579,7 @@ package body UML_Types is
       return Tmp(1..Ind);
    end Dot_Format;
 
+   
    -- called while drawing arcs inside dot diagrams
    function Transition_DotImage (This: Transition_Ref;
                                  Label_Included: Boolean := True) return String is
@@ -535,7 +596,6 @@ package body UML_Types is
             Result := Append (Result, "@" & Tmp.Label.all(1..i-1) & "@ ");
          end if;
       end if;
-
       -- display the trigger/guard/actions
       if Tmp.Trigger.Params.all'Length = 0  or else
         (Tmp.Trigger.Kind=Operation and then Tmp.Trigger.Params.all'Length=1) then
@@ -547,6 +607,7 @@ package body UML_Types is
          Result := Append (Result,Tmp.Trigger.Name.all & "(" &
                              Args_Image(Tmp.Trigger.Params(2..Tmp.Trigger.Params.all'Length)) & ")" );
       end if;
+      --
       if Tmp.Guard /= null then
          Result := Append (Result, "\n  [" & BoolBoolExpr_Image(Tmp.Guard.all) & "]\n");
       end if;
@@ -554,6 +615,7 @@ package body UML_Types is
          Result := Append (Result, "/\n");
          Result := Append (Result, Dot_Format(Actions_Image(Tmp.Actions.all)));
       end if;
+      --
       declare
          Static: String := Result.all;
       begin
@@ -562,6 +624,7 @@ package body UML_Types is
       end;
    end Transition_DotImage;
 
+   
    function Transition_Image (This: Transition_Ref;
                               Label_Included: Boolean := True) return String is
       Result: String_Ref := new String'("");
@@ -578,11 +641,14 @@ package body UML_Types is
          end if;
       end loop;
       -- display the label
+      --
       if Label_Included then
          Result := Append (Result, Transition_Label(This));
          Result := Append (Result,  ": ");
       end if;
-      -- Display the sources
+      --
+      -- display the sources
+      --
       if Tmp.Source.all'Length > 1 then
          Result := Append (Result,  " (" );
       end if;
@@ -595,8 +661,11 @@ package body UML_Types is
       if Tmp.Source.all'Length > 1 then
          Result := Append (Result,  ")" );
       end if;
+      --
       Result := Append (Result,  " -> ");
+      --
       -- Display the targets
+      --
       if Tmp.Target.all'Length > 1 then
          Result := Append (Result,  "(" );
       end if;
@@ -609,8 +678,10 @@ package body UML_Types is
       if Tmp.Target.all'Length > 1 then
          Result := Append (Result,  ")" );
       end if;
-      -- Display the trigger/guard/actions
-      -- Result := Append (Result,  " -( ");
+      --
+      -- display the trigger/guard/actions
+      --
+      --  Result := Append (Result,  " -( ");
       Result := Append (Result,  " { ");
       if Tmp.Trigger.Params.all'Length = 0  or else
         (Tmp.Trigger.Kind=Operation and then Tmp.Trigger.Params.all'Length=1) then
@@ -622,14 +693,15 @@ package body UML_Types is
          Result := Append (Result,Tmp.Trigger.Name.all & "(" &
                              Args_Image(Tmp.Trigger.Params(2..Tmp.Trigger.Params.all'Length)) & ")" );
       end if;
-      -- Result := Append (Result, Event_Image(Tmp.Trigger.all));
+      --  Result := Append (Result, Event_Image(Tmp.Trigger.all));
       if Tmp.Guard /= null then
          Result := Append (Result, " [" & BoolBoolExpr_Image(Tmp.Guard.all) & "]");
       end if;
       Result := Append (Result, " / ");
       Result := Append (Result, Actions_Image(Tmp.Actions.all));
-      -- Result := Append (Result,  " )-> ");
+      --  Result := Append (Result,  " )-> ");
       Result := Append (Result,  "} ");
+      --
       declare
          Static: String := Result.all;
       begin
@@ -638,17 +710,20 @@ package body UML_Types is
       end;
    end Transition_Image;
 
+   
    function Transition_ShortImage (This: Transition_Ref;
                                    Label_Included: Boolean := True) return String is
       Result: String_Ref := new String'("");
       Tmp: Transition_Ref := This;
    begin
       -- display the label
+      --
       if Label_Included then
          Result := Append (Result, Transition_Label(This));
          Result := Append (Result,  ": ");
       end if;
-      -- display the trigger/guard
+      --  -- display the trigger/guard
+      --
       Result := Append (Result,Tmp.Trigger.Name.all & " / ");
 
       declare
@@ -659,6 +734,7 @@ package body UML_Types is
       end;
    end Transition_ShortImage;
 
+
    function Is_Active_Chart(The_Chart: Natural) return Boolean is
    begin
       if The_Chart not in All_Charts.all'Range  then
@@ -667,6 +743,7 @@ package body UML_Types is
          return All_Charts(The_Chart).Top_State_Num /= 0;
       end if;
    end Is_Active_Chart;
+
 
    function Args_Count (The_Signal: Int_Table) return Natural is
       This_Event: Event_Ref;
@@ -678,7 +755,7 @@ package body UML_Types is
       if The_Signal(I) not in
         All_Events.all'Range then
          return 0;
-         -- raise UML_Error;
+         --     raise UML_Error;
       end if;
       This_Event := All_Events(The_Signal(I));
       if This_Event.Kind = Signal or This_Event.Kind = Undefined then
@@ -692,6 +769,7 @@ package body UML_Types is
       end if;
    end Args_Count;
 
+   
    function Literal_Value (Literal:String) return Integer is
    begin
       if Literal(Literal'First) in '0'..'9'  or else
@@ -699,16 +777,22 @@ package body UML_Types is
          Literal(Literal'First) ='-' and then
          Literal(Literal'First+1) in '0'..'9') then
          return Integer'Value(Literal);
+         --
       elsif Literal = "true"  then
          return  UML_Types.IntTrue;
+         --
       elsif Literal = "false"  then
          return UML_Types.IntFalse;
+         --
       elsif Literal= "null"  then
          return UML_Types.IntNullObject;
+         --
       elsif Literal= "undefined"  then
          return UML_Types.IntUndefinedValue;
+         --
       elsif Literal = "[]" then
          return UML_Types.IntEmptyStruct;
+         --
       else
          --  obj, token
          for I in UML_Types.All_Charts.all'Range loop
@@ -719,9 +803,11 @@ package body UML_Types is
          return Integer'First;
          --  or raise Runtime_Error ?????!!!!
       end if;
+      --
    exception
       when others => return Integer'First;
    end Literal_Value;
+
 
    function is_Operation (The_Signal: Int_Table) return Boolean is
       This_Event: Event_Ref;
@@ -733,7 +819,7 @@ package body UML_Types is
       if The_Signal(I) not in
         All_Events.all'Range then
          return False;
-         -- raise UML_Error;
+         --     raise UML_Error;
       end if;
       This_Event := All_Events(The_Signal(I));
       if This_Event.Kind = Signal or This_Event.Kind = Undefined then
@@ -743,6 +829,7 @@ package body UML_Types is
       end if;
    end is_Operation;
 
+   
    function Is_Default_Initial (This: State_Ref) return Boolean is
    begin
       if This.FullName.all'Length > 8 and then
@@ -754,6 +841,7 @@ package body UML_Types is
       end if;
    end Is_Default_Initial;
 
+   
    function Is_Final (This: State_Ref) return Boolean is
    begin
       if This.FullName.all'Length > 6 and then
@@ -764,6 +852,7 @@ package body UML_Types is
          return False;
       end if;
    end Is_Final;
+
 
    function  Normalized_Literal(Source: String) return String is
    begin
@@ -783,6 +872,7 @@ package body UML_Types is
          return Source;
       end if;
    end Normalized_Literal;
+
 
    function Eval_Literal (Id: String) return Integer is
    begin
@@ -819,6 +909,7 @@ package body UML_Types is
       end if;
    end Eval_Literal;
 
+
    function Active_Object_Names return String is
       Str: String_Ref := new String'("");
    begin
@@ -837,6 +928,7 @@ package body UML_Types is
       end;
    end Active_Object_Names;
 
+   
    function Entity_Names return String is
       Str: String_Ref := new String'("");
       Prev: String_Ref;
@@ -874,6 +966,7 @@ package body UML_Types is
       end;
    end Entity_Names;
 
+   
    function Has_Random_Queues(Index:Natural) return Boolean is
       oldstyle: Boolean :=False;
    begin
@@ -892,7 +985,7 @@ package body UML_Types is
    end Has_Random_Queues;
 
 begin
-
    null;
    --  NullStruct.Simple.Literal_Value := StructBase - Vectors_DB.NickNum(Empty_Int_Table);
+
 end UML_Types;
