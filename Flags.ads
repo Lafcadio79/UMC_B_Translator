@@ -1,11 +1,16 @@
+-- local libraries
 with Ada.Unchecked_Deallocation;
+
 package Flags is
-   --
+
    subtype Int64 is Integer;
+   
    type Int32 is mod 2**32;
    type Int_Table is array (Positive range <>) of Integer;
-   --
-   ------------------------- SHARED TYPES -----------------------
+
+   ------------------
+   -- SHARED TYPES --
+   ------------------
    type String_Ref is access String;
    Null_String: constant String_Ref := new String'("");
    procedure Free is new Ada.Unchecked_Deallocation (String, String_Ref);
