@@ -1,10 +1,10 @@
 -- local libraries
-
 with Ada.Text_IO;
 with Ada.Exceptions;
 with Ada.Characters.Handling;
 
 -- separate (configurations.Kernel)
+with Flags;
 with UML_Types;
 
 package body UML_Parser is
@@ -19,10 +19,13 @@ package body UML_Parser is
    --------------------------------------------
 
    -- enable the use of the imported libraries
+   use Flags;
    use UML_Types;
    use Ada.Text_IO;
    use Ada.Exceptions;
    use Ada.Characters.Handling;
+      
+   
    ----------------------------------------------------
    -- TOKENS MANAGEMENT AND GENERIC PARSING ROUTINES --
    ----------------------------------------------------
@@ -37,7 +40,10 @@ package body UML_Parser is
       Line_Ref: String_Ref;
       Column: Natural;
       Kind: Token_Kind;
+      PrecedingBlockComment: String_Table_Ref;
    end record;
+  
+   LastBlock: String_Table_Ref  := Empty_String_Table_Ref;
 
    type Comment_Element is record
       Item: String_Ref;
@@ -139,9 +145,9 @@ package body UML_Parser is
       end if;
    end Next_Next_Item;
 
-   ------------------------------------------------------------
-   --  IMPLEMENTATION OF TOKENS MANAGENT AND GENERIC PARSING --
-   ------------------------------------------------------------
+   ---------------------------------------------------------------------------
+   --  IMPLEMENTATION OF TOKENS MANAGENT AND GENERIC PARSING
+
    procedure Skip_Token (Item: String := "") is
    begin
       if Current_Token = 0 then
@@ -184,9 +190,11 @@ package body UML_Parser is
       Put_line(Current_Error, Msg);
    end Give_Error;
 
-   ----------------------------------------------------
-   -- deletes the comment part from the current line --
-   ----------------------------------------------------
+   --------------------------------------------------------
+   -- deletes the comment part from the current line
+   --  if the current line contains "--" or "//" the remainaing part is removed.
+   --  ( c-like     var--  operator causes error)
+   --------------------------------------------------------
    procedure Remove_Comments is
       Inside_String_Literal: Boolean := False;
       Thecomment: Comment_Element;
@@ -203,9 +211,13 @@ package body UML_Parser is
             All_Comments := new Comments_Table'(All_Comments.all & All_Comments_Buffer);
             All_Comments_Count:=0;
          end if;
+         LastBlock := new String_Table'(LastBlock.all & Thecomment.Item);
          Line_Length :=0;
          return;
       end if;
+      -- NOTICE!!
+      -- COMMENTS NOT STARTING AT THE BEGIN OF LINE ARE IGNORED 
+      --
       for I in 1..Line_Length loop
          if Input_Line(I)= '"' then
             Inside_String_Literal := not Inside_String_Literal;
@@ -234,6 +246,7 @@ package body UML_Parser is
       end loop;
    end Remove_Comments;
 
+   -- skips lf and cr characters and calls Remove_Comments
    procedure Read_New_Line(F: File_Type) is
    begin
       Line_Length :=0;
@@ -244,7 +257,9 @@ package body UML_Parser is
             return;
          end if;
       end if;
+      --
       -- read until first not blank or comment line
+      --
       while Line_Length =0 loop
          -- until a non blank line is found, or end-of-file
          -- leggi fino alla fine di tutta la riga, saltando tutti i caratteri do controllo finali.
@@ -315,16 +330,25 @@ package body UML_Parser is
             exit;
          end if;
       end loop;
+    
    end Read_New_Line;
 
-   -- reads the input file until a non-white char is found
+   -----------------------------------------------------------------
+   -- At startup calls Read_New_Line which sets the current input_line.
+   -- Continue the reading of the INPUT_LINE until a non-white char is found
+   -- If not found, further lin es are read.
+   -- the INPUT_LINE has been prepared by one or more Read_New_Line skipping
+   -- empty lines or purely comment lines.
    --  when EOF, sets Line_Length to 0
+   -- Skips spaces and skip new_lines if needed, up to some nonblank char
+   -----------------------------------------------------------------
    procedure Skip_Spaces(F: File_Type) is
    begin
+      --
       if Line_Length = 0 and not End_Of_File(F) then
          Read_New_Line(F);
       end if;
-
+      --
       -- cycle reading until a non empty is found
       loop
          -- find first next non space char
@@ -348,31 +372,37 @@ package body UML_Parser is
    --------------------------------------------------------------------
    -- extracts the next token from the stream
    -- returns a token with empty string item  when EOF;
-   -- TOKENS are:
-   -- numbers      0..9     0..9
-   -- ids    a..z  A..Z  0..9 _ '
-   -- strings  "any"
-   -- specials long:  )->  -(  :=  ++ --  ->  >=  <= ==  !=  && ||  /* */   $* ..
-   -- specials short: ( ) , ; = : - [ ] /  $ & * + > < | .  ^ # % ! ?
+   --  Comment lines and comment fragment are skipped by Skip_Spaces
+   --  TOKENS are:
+   --   numbers      0..9     0..9
+   --   ids    a..z  A..Z  0..9 _ '
+   --   strings  "any"
+   --   specials long:  )->  -(  :=  ++ --  ->  >=  <= ==  !=  && ||  /* */   $* ..
+   --   specials short: ( ) , ; = : - [ ] /  $ & * + > < | .  ^ # % ! ?
    --
-   -- "*"  is the times operator or the star matching sybol, unless it appears in $*
-   -- "/* .. */ " is a comment separator
-   -- "// " is a comment separator
-   -- "--"  is comment separator only if
-   -- a)  appears at the beginnning of the line
-   -- or  b)  is preceeded by a white space or non alfanumeric character
-   -- N.B.  Tokens are buffered by Read_Tokens
+   --   "*"  is the times operator or the star matching sybol, unless it appears in $*
+   --     "/* .. */ " is a comment separator
+   --     "// " is a comment separator
+   --     "--"  is comment separator only if
+   --      a)  appears at the beginnning of the line
+   --  or  b)  is preceeded by a white space or non alfanumeric character
+   --   N.B.  Tokens are buffered by Read_Tokens
    --------------------------------------------------------------------
    function Get_Token(F:File_Type) return Token is
       This_Token: Token;
       StringBuffer: String(1..Max_Token_Size);
       Item_Size: Natural :=0;
    begin
-      Skip_Spaces(F);
+      -- skip spaces and skip new_lines if needed, up to some nonblank char
+      Skip_Spaces(F);   
+    
       -- if empty file, Current_Position =1  and
       This_Token.Line :=  Line_Number;
       This_Token.Line_Ref := Last_Line;
       This_Token.Column :=  Current_Position;
+      This_Token.PrecedingBlockComment := LastBlock;
+      LastBlock := Empty_String_Table_Ref;
+    
       -- if file empty return null final token
       if Line_Length = 0  then
          This_Token.Item := new String'("");
@@ -572,18 +602,26 @@ package body UML_Parser is
       if This_Token.Item.all = "$*" then
          This_Token.Kind := Id;
       end if;
+    
+      -- FlowComments, if any, are added by Skip_Spaces.
+    
       -- reset to one after all tokens are read
       -- needed to remember the placing of comments extracted by Remove_Comments
       Current_Token := Current_Token+1;
       return This_Token;
    end Get_Token;
 
+  
+   -- fills the Tokens tables by calling Get_Token, 
+   -- sets Current_Token to 1
+   --  block comments within  /* ... */  are ignored !!!
    procedure  Read_Tokens(F:File_Type) is
-      Buffer: Tokens_Table(1..1000);  -- Tokens is a vector of Buffers
+      Buffer: Tokens_Table(1..20000);  -- Tokens is a vector of Buffers
       Count: Natural := 0;
       Tmp: Token;
    begin
       Tmp:= Get_Token(F);
+      --  block comments within  /* ... */  are ignored !!!
       if Tmp.Item.all="/*" then
          while Tmp.Item.all = "/*" loop
             while Tmp.Item.all /= "*/" and then
@@ -616,6 +654,8 @@ package body UML_Parser is
       Tokens := new Tokens_Table'(Tokens.all & Buffer(1..Count));
       Current_Token := 1;
    end Read_Tokens;
+
+
 
    --------------------------------------------------------------------------
    --    UML SPECIFIC  PARSIMG ROUTINES
@@ -678,11 +718,12 @@ package body UML_Parser is
    procedure  Parse_Vars;
 
    function Parse_Actions (TEnv:EventVars_Table_Ref) return Actions_Table_Ref;
-   procedure Parse_Class_Body (This_Class_Name: String_Ref);
+   procedure Parse_Class_Body (This_Class_Name: String_Ref;
+                               Prev_Comments: String_Table_Ref := Empty_String_Table_Ref);
 
    function Find_SystemVar(Prefix:String) return Natural;
    function Parse_IntExpr (Env: EventVars_Table) return IntExpr_Ref;
-   function Parse_SimpleExpr(Env: EventVars_Table; In_FunctCall: Boolean := False)
+   function Parse_SimpleExpr(Env: EventVars_Table; In_FunctCall: Boolean := False) 
                             return SimpleIntExpr_Ref;
    procedure Parse_Transitions;
    function Find_Var(Prefix:String) return Natural;
@@ -1505,11 +1546,11 @@ package body UML_Parser is
 
    -- x
    -- x, y
-   -- x, y, z
+   -- x, y, z 
    -- x, y;
    -- x,y,z:=34,       -- ALLOWED???
    -- x,y,z:int;
-   -- x:int,   x:int;
+   -- x:int,   x:int;   
    -- x,y,z:int;      -- ALLOWED
    -- x,y,z:int :=3;  -- DISALLOWED
    -- x,y,z:=34;       -- DISALLOWED
@@ -1522,7 +1563,7 @@ package body UML_Parser is
       PlaceHolder: Natural :=0;
       --    Tmp: Int_Table_Ref;
       This_Simple: SimpleIntExpr;
-      This_Var: SystemVar_Ref;
+      This_Var: SystemVar_Ref; 
    begin
       This_Var := new SystemVar;
       This_Var.Name := Parse_Id;
@@ -1660,9 +1701,9 @@ package body UML_Parser is
          end if;  -- ":0..n"
          --
          --  added to allow   x:int, y:=bool
-         if Vars_Count=1 and Current_Item="," then
+         if Vars_Count=1 and Current_Item="," then 
             Tokens(Current_token).Item(1) := ';';
-         end if;
+         end if; 
          --
       end if;  -- ":"
       --
@@ -1692,7 +1733,7 @@ package body UML_Parser is
          end if;
          --
          --  added to allow   x:=0, y:=true
-         if Vars_Count=1 and Current_Item="," then
+         if Vars_Count=1 and Current_Item="," then  
             Tokens(Current_token).Item(1) := ';';
          end if;
          --
@@ -1759,9 +1800,9 @@ package body UML_Parser is
          end if;
          declare
             This_Vars_Table: Vars_Table := Parse_VarDecl;
-            This_Var: SystemVar_Ref;
+            This_Var: SystemVar_Ref; 
          begin
-            for V in This_Vars_Table'Range loop
+            for V in This_Vars_Table'Range loop 
                This_Var := This_Vars_Table(V);
                -- check if var already defined
                for I in All_Classes(Current_Class).ChartVars.all'Range loop
@@ -2589,6 +2630,7 @@ package body UML_Parser is
       This_Object_Name: String_Ref;
       This_Class_Name: String_Ref;
       Line: Natural :=0;
+      comms: String_Table_Ref;
    begin
       --  until EOF
       while Current_Item /= "" loop
@@ -2602,6 +2644,7 @@ package body UML_Parser is
                --   end OO;
                ---------------------------------------
                --- DEPRECATED
+               comms := Tokens(Current_Token).PrecedingBlockComment;
                Skip_Token;
                --
                -- in general, a chart id may already exist if a signal
@@ -2624,9 +2667,10 @@ package body UML_Parser is
                --     ....
                --   end MyClass;
                ------------------------------------
+               comms := Tokens(Current_Token).PrecedingBlockComment;
                Skip_Token;
                This_Class_Name :=  Parse_Id;
-               Parse_Class_Body(This_Class_Name);
+               Parse_Class_Body(This_Class_Name,comms);
                --
             elsif  Current_Item = "Objects" or
               Current_Item = "objects" then
@@ -3757,7 +3801,7 @@ package body UML_Parser is
             --
          elsif Current_Item = "." then
             Skip_Token;
-            if Current_Item="head" or Current_Item="tail" or Current_Item="length"
+            if Current_Item="head" or Current_Item="tail" or Current_Item="length" 
               or Current_Item="min" or Current_Item="max" then
                This.IdsL := new String_Table'(This.IdsL.all & Tokens(Current_Token).Item);
                Skip_Token;
@@ -3911,7 +3955,7 @@ package body UML_Parser is
          if Current_Item  /= "->" and then
            Current_Item  /= "and"  and then
            chartindex >0 and then
-           (Current_Item(1) in 'a'..'z' or
+           (Current_Item(1) in 'a'..'z' or 
                 Current_Item(1) in 'A'..'Z' or
                 Current_Item(1) = '.' ) then
             --
@@ -3968,7 +4012,7 @@ package body UML_Parser is
             --
          elsif Current_Item = "." then
             Skip_Token;
-            if Current_Item="head" or Current_Item="tail" or Current_Item="length"
+            if Current_Item="head" or Current_Item="tail" or Current_Item="length" 
               or Current_Item="min" or Current_Item="max" then  -- ADDED APRIL 1 2019
                This.IdsR := new String_Table'(This.IdsR.all & Tokens(Current_Token).Item);
                Skip_Token;
@@ -4588,7 +4632,8 @@ package body UML_Parser is
    --  Parse the local declarations of the Current Class or Chart
    --
    --------------------------------------
-   procedure Parse_Class_Body (This_Class_Name:String_Ref) is
+   procedure Parse_Class_Body (This_Class_Name:String_Ref; 
+                               Prev_Comments: String_Table_Ref := Empty_String_Table_Ref) is
       Max_Parallelism: Natural := 0;
       This_Class: Chart;
       Progress: Natural :=0; -- signals, operations, vars, state transitions end class
@@ -4606,7 +4651,7 @@ package body UML_Parser is
                israndom := True;
                Skip_Token;
                if Current_Item="," then Skip_Token; end if;
-            else
+            else 
                Give_Error("4579  ""niceparallelism""or ""randomqueue"" expected");
                raise PArsing_Error;
             end if;
@@ -4623,6 +4668,7 @@ package body UML_Parser is
          Current_Class := All_Classes.all'Length +1;
          All_Classes := new Chart_Table'(All_Classes.all & This_Class);
          All_Classes(Current_Class).Name := This_Class_Name;
+         All_Classes(Current_Class).Comms := Prev_Comments;
       elsif All_Classes(Current_Class).Top_State_Num > 0 then
          Give_Error ("4596 Error: Chart " & This_Class_Name.all &
                        " already defined!");
@@ -5156,7 +5202,7 @@ package body UML_Parser is
    --       Is_Indexing: IntExpr_Table_Ref;          -- indexing
    --       Head_Tail_Data : SimpleIntExpr_Ref;   --- added 30-06-2016
    ---------------------------------------------------------------------
-   function Parse_SimpleExpr(Env: EventVars_Table; In_FunctCall: Boolean := False)
+   function Parse_SimpleExpr(Env: EventVars_Table; In_FunctCall: Boolean := False) 
                             return SimpleIntExpr_Ref is
       This_Simple: SimpleIntExpr_Ref := new SimpleIntExpr;
       Tmp: SimpleIntExpr_Ref;
@@ -5279,7 +5325,7 @@ package body UML_Parser is
          This_Simple.Special_Token := new String'("self");
          This_Simple.Image := new String'(This_Item);
          This_Simple.Kind := Object;
-         This_Simple.Literal_Value := -1;   --NEW for correct ActionImage
+         This_Simple.Literal_Value := -1;   --NEW for correct ActionImage 
          if Current_Item = "[" then
             Give_Error("5249 Indexing not allowed in this context.");
             raise Parsing_Error;
@@ -5298,7 +5344,7 @@ package body UML_Parser is
          This_Simple.Special_Token := new String'("this");
          This_Simple.Image := new String'(This_Item);
          This_Simple.Kind := Object;
-         This_Simple.Literal_Value := -1;   --NEW for correct ActionImage
+         This_Simple.Literal_Value := -1;   --NEW for correct ActionImage 
          return This_Simple;
       end if;
       --
@@ -5485,8 +5531,8 @@ package body UML_Parser is
                --  CASE:    object.signal  return  expr for "object" only
                --  ISSUE    v :=  10 + obj.functcall;  should be forbidden
                --            obj.signal  should be allowed.
-            elsif Current_Item = "." then
-               --            if In_FunctCall then
+            elsif Current_Item = "." then 
+               --            if In_FunctCall then 
                exit;
                --            else
                --              Give_Error("5455 function calls not allowed inside expression");
@@ -5552,11 +5598,11 @@ package body UML_Parser is
       This_Simple.Literal_Value := ObjectBase - Check_Object(This_Item);
       --  se ci fosse un parametro typeInfo potremmo aggiustare il classtype.
       This_Simple.Kind := Object;
-      This_Simple.Image := new String'(This_Item);
+      This_Simple.Image := new String'(This_Item); 
       --
-      -- ISSUE  BUG when  obj.opcall
-      --      if Current_Item = "." then
-      --         if In_FunctCall then
+      -- ISSUE  BUG when  obj.opcall 
+      --      if Current_Item = "." then 
+      --         if In_FunctCall then 
       --            null;
       --         else
       --          Give_Error("5523 function calls not allowed inside expression");
@@ -6556,7 +6602,7 @@ package body UML_Parser is
             -- this is a PLAIN ASSIGNMENT action
             --  "SystemVar :=  umlExpr "  "Tvar := umlExpr"
             --  "SystemVar[expr] :=  umlExpr "  "Tvar[expr] := umlExpr"
-            --
+            -- 
             This_Action.Kind := Assignment;
             This_Action.Assignment_Right := Parse_umlExpr(TEnv.all);
             -- sanity check for opcall body -  used by Parse_Transition_Structure
@@ -6977,15 +7023,17 @@ package body UML_Parser is
 
    -------------------------------------------------------------------------
    -- A  Transition has the form:
-   -- <label>:  <source> -( <trigger> / <actions> )-> <target>  or
-   -- <label>:  <source> -> <target>
-   -- (with some components potentially missing)
-   -- path.initial  -> path.initialstate
-   -- where-- e.g.
-   --   t1: S1.R4.s6 -> s2
-   --   t2: (S1.R4.s6,S1.R5.s2) -> s2     join
-   --   t3: S1  -( - / x := x+1; obj.target(v) )->  s2
-   --       (S1.R4.s6,S1.R5.s9) -( trigger  )-> s2     # join
+   --  <label>:  <source> -( <trigger> / <actions> )-> <target>  or
+   --  <label>:  <source> -> <target>
+   --    (with some components potentially missing)
+   --     path.initial  -> path.initialstate
+   --  where
+   --
+   -- e.g.
+   --   t1:  S1.R4.s6 -> s2
+   --   t2:  (S1.R4.s6,S1.R5.s2) -> s2     join
+   --   t3:  S1  -( - / x := x+1; obj.target(v) )->  s2
+   --      (S1.R4.s6,S1.R5.s9) -( trigger  )-> s2     # join
    -------------------------------------------------------------------------
    procedure Parse_Transition is
       This_Transition: Transition_Ref;
@@ -7008,26 +7056,31 @@ package body UML_Parser is
       --
       This_Label := null;
       if Next_Item = ":" then
+         This_Transition.Comms := Tokens(Current_Token).PrecedingBlockComment;
          This_Label := Parse_Id;
          This_Transition.Label := This_Label;
          Skip_Token;    -- next_item
       elsif Next_Item = "(" then
          This_Label := new String'("");
+         This_Transition.Comms := Tokens(Current_Token).PrecedingBlockComment;
          while Current_Item /= ":" loop
             if Current_Item = "->" then
                Give_Error ("6999 expecting ':' at end of transition label");
                raise Parsing_error;
             end if;
             This_Label := new String'(This_Label.all & Current_Item);
-            Skip_Token;
+            Skip_Token; 
          end loop;
          This_Transition.Label := This_Label;
-         Skip_Token (":");
+         Skip_Token (":"); 
       end if;
       --
       --  parse the source
       --
       if Current_Item  = "(" then
+         if Tokens(Current_Token).PrecedingBlockComment.all'Length >0 then
+            This_Transition.Comms := Tokens(Current_Token).PrecedingBlockComment;
+         end if;
          Skip_Token;
          These_Names:= Parse_Names_List;
          This_Transition.Source := new States_Table(These_Names.all'Range);
@@ -7036,6 +7089,9 @@ package body UML_Parser is
          end loop;
          Skip_Token (")");
       else
+         if Tokens(Current_Token).PrecedingBlockComment.all'Length >0 then
+            This_Transition.Comms := Tokens(Current_Token).PrecedingBlockComment;
+         end if;
          This_Name := Parse_Composite_Name;
          --
          This_Transition.Source :=
@@ -7064,6 +7120,7 @@ package body UML_Parser is
          -- this sets Return_or_Caller_Found
       end if;
       --
+
       if Current_Item = ")->"  or else
         Current_Item = "->"  then
          Skip_Token;
@@ -7097,7 +7154,7 @@ package body UML_Parser is
                raise Parsing_Error;
             end if;
             -- just make sure target is first state of the parent and return
-            -- the defauklt 쩮tial node has not been linked to the parent by Lazy_Find_State
+            -- the defauklt ìintial node has not been linked to the parent by Lazy_Find_State
             -- remove explicit "initial" node
             declare
                parent: State_ref := This_Transition.Target(1).parent;
@@ -7223,6 +7280,28 @@ package body UML_Parser is
             Skip_Token("}");
          end if;
       end if;
+      --
+      -- OutGoing_Catalogue ...
+      --
+      --     declare
+      --       This_Substate: State_Ref;
+      --     begin
+      --       for I in Tmp_Owner.SubStates.all'Range loop
+      --         This_Substate := Tmp_Owner.Substates(I);
+      --         --
+      --         if This_Transition.Source(1) = This_Substate or else
+      --            IsNested (This_Transition.Source(1).all, This_Substate.all) then
+      --           --
+      --           -- build its catalogue;
+      --           This_Substate.OutgoingTransitions :=
+      --              Add_To_Outgoing_Catalogue (This_Transition,
+      --                                          This_Substate.OutgoingTransitions);
+      --           exit;
+      --         end if;
+      --         --
+      --        end loop;
+      --      end;
+      --
    exception
       when others =>
          Parsing_Failed := True;
