@@ -22,9 +22,9 @@ procedure Main is
    use Ada.Strings.Fixed;
    use Ada.Characters.Handling;
 
-   ---------------------------------------------------
-   -- objects, variables, and procedure declaration --
-   ---------------------------------------------------
+   --------------------------------------------------
+   -- object, variable, and procedure declarations --
+   --------------------------------------------------
    This_Chart: Chart;
    -- reding command line
    UMCfilename: String_ref;
