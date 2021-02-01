@@ -29,7 +29,13 @@ procedure Main is
    -- reding command line
    UMCfilename: String_ref;
  
-   --  procedure set_variables (SD: Natural) is separate; 
+   --  procedure set_variables (SD: Natural) is separate;
+   -- The procedure takes from the UMC model all the object and variable names
+   -- (within the body of the OBJECT and VARS clauses) and returns a list of
+   -- variable label prefixed with respect to the given object.
+   --
+   -- e.g. if the set O of the objects is {O1, O2}, and the set V of variables is {a,b,c},
+   -- the result will be the cartesian product OxV, i.e., {O1_a, O1_b, O1_c, O2_a, O2_b, O2_c}
    procedure print_varnames (SD: Natural) is
    begin
       This_Chart := All_Charts(SD);
