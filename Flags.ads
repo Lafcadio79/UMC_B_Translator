@@ -1,5 +1,5 @@
 with Ada.Unchecked_Deallocation;
-package FLAGS is
+package Flags is
    --
    subtype Int64 is Integer;
    type Int32 is mod 2**32;
@@ -208,4 +208,4 @@ package FLAGS is
    -- uctl.adb:  Max_Synchronizations: Positive := 10000;
    -- uctl.adb:   Result:String(1..10000);
 
-end FLAGS;
+end Flags;
