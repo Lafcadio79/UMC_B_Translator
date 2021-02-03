@@ -37,7 +37,7 @@ procedure Main is
    -- procedure set_variables (SD: Natural) is separate;
    -- The procedure takes from the UMC model all the object and variable names
    -- (within the body of the OBJECT and VARS clauses) and returns a list of
-   -- variable label prefixed with respect to the given object.
+   -- variable labels prefixed with respect to the given object.
    --
    -- e.g. Being O = {O1, O2} the set of the objects and V={a,b,c} the set of variables,
    -- the the procedure returns the cartesian product OxV={O1_a, O1_b, O1_c, O2_a, O2_b, O2_c}
