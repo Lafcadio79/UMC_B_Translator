@@ -35,6 +35,19 @@ procedure Main is
    -- Procedures & Functions --
    ----------------------------
    
+   -- SETS clause body
+   procedure print_set_signals (SD: Natural) is
+   begin
+      This_Chart := All_Charts(SD);
+	  
+	  for K in This_Chart.ChartStates'Range loop
+		Put_Line(Standard_Output, This_Chart.ChartStates(K).FullName.all);
+	  end loop;
+	  
+   end print_set_signals;
+
+
+
    -- procedure set_variables (SD: Natural) is separate;
 
    -- Such procedure takes from the UMC model all the object and variable names
@@ -263,7 +276,7 @@ begin
    
    New_Line;
   
-   -- MACHINE clause + name
+   -- MACHINE clause + name (set-valued and scalar-valued parameters to be added if required ...)
    Put("MACHINE " & Machine_name.all);
 
    New_Line(3);
@@ -283,8 +296,8 @@ begin
    Put_line("SETS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
          -- Procedure/Function TODO
+		 print_set_signals(I);
       end if;
    end loop;
 
@@ -294,7 +307,7 @@ begin
    Put_line("DEFINITIONS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
+         This_Chart := All_Charts(I); -- useless assignment
          -- Procedure/Function TODO
       end if;
    end loop;
@@ -305,7 +318,7 @@ begin
    Put_line("CONSTANTS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
+         This_Chart := All_Charts(I);   -- useless assignment
          -- Procedure/Function TODO
       end if;
    end loop;
@@ -316,7 +329,7 @@ begin
    Put_line("PROPERTIES ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
+         This_Chart := All_Charts(I);   -- useless assignment
          -- Procedure/Function TODO
       end if;
    end loop;
@@ -327,7 +340,6 @@ begin
    Put_line("VARIABLES ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
          print_varnames(I);
       end if;
    end loop;
@@ -338,7 +350,6 @@ begin
    Put_line("INVARIANT ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
          print_vartypes(I);
       end if;
    end loop;
@@ -349,7 +360,6 @@ begin
    Put_line("INITIALISATION ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
          print_varinitvalues(I);
       end if;
    end loop;
@@ -360,7 +370,6 @@ begin
    Put_Line("OPERATIONS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         This_Chart := All_Charts(I);
          print_transitions(I);
       end if;
    end loop;
