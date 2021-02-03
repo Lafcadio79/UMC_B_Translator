@@ -37,12 +37,24 @@ procedure Main is
    
    -- SETS clause body
    procedure print_set_signals (SD: Natural) is
-   begin
+   begin	  
       This_Chart := All_Charts(SD);
-	  
-	  for K in This_Chart.ChartStates'Range loop
-		Put_Line(Standard_Output, This_Chart.ChartStates(K).FullName.all);
+	  Put_Line("SIGNALS = {");
+	  for K in This_Chart.ChartEvents'Range loop
+	     if This_Chart.ChartEvents(K).Kind'Image = "SIGNAL" then
+		    Put(This_Chart.ChartEvents(K).Name.all);
+			if K = This_Chart.ChartEvents'Last  and then
+				SD = All_Charts'Last then
+				-- PROB does not require the ',' after the last set element name
+				New_line;
+			else
+				Put_line(", ");
+			end if;
+		 end if;
 	  end loop;
+      Put_Line("};");
+	  
+	  -- TODO the state set
 	  
    end print_set_signals;
 
@@ -296,9 +308,17 @@ begin
    Put_line("SETS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
-         -- Procedure/Function TODO
-		 print_set_signals(I);
-      end if;
+		 This_Chart := All_Charts(I);
+		 for K in This_Chart.ChartEvents'Range loop
+			if This_Chart.ChartEvents(K).Name.all'Length > 0 then
+				print_set_signals(I);
+			end if;
+			-- to avoid duplicate entries
+			exit;
+		 end loop;
+		 -- to avoid duplicate entries
+		 exit;
+	   end if;
    end loop;
 
    New_Line(2);
