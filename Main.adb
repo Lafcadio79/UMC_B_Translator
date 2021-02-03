@@ -341,7 +341,7 @@ begin
    
    New_Line(2);
    Put_line("END");
-   -- close of the output file
+   -- close the output file
    Close(F_Out);
    Put_Line(Standard_Output, "File mch closed");   
    Put_Line(Standard_Output, "Done!");   
