@@ -29,6 +29,7 @@ procedure Main is
    This_Chart  : Chart;
    UMCfilename : String_ref;
    Machine_name: String_ref;
+   B_Filename  : String_ref;
    
    ----------------------------
    -- Procedures & Functions --
@@ -128,7 +129,7 @@ procedure Main is
    end;
 
    function GetTarget(SD: Natural; K: Natural; A:Natural) return String is
-      -- The target of a signal  action can be either directly an object name
+      -- The target of a signal action can be either directly an object name
       -- or the name of a local variable initialised with the value of an object name.
       Actions: Actions_Table_Ref; 
       targetimg: String_ref;
@@ -241,24 +242,33 @@ begin
       Put_Line (" Usage:   Main   UMCFilename   Machine_Name");
       return;
    end if;
+
+   -- storing the input and parsing
    UMCfilename  := new String'(Ada.Command_Line.Argument(1));
    Machine_name := new String'(Ada.Command_Line.Argument(2));
    parse(UMCfilename.all);
-   -----
-   
+
+   -- get the output filename
+   B_Filename := new String'(UMCfilename.all(1 .. UMCfilename'Length - 4) & ".mch");
 
    -- creation of the output file
-   Create(F_Out, Out_File, "prova.mch");
+   Create(F_Out, Out_File, B_Filename.all);
+
    -- redirect the stdout to the F_Out file
    Set_Output(F_Out);
    
-   Put_Line(Standard_Output, "File mch created");
+   -- stdout messages
+   Put_Line(Standard_Output, "File " & B_Filename.all & " created");
    Put_Line(Standard_Output, "Translating ...");
    
    New_Line;
+  
+   -- MACHINE clause + name
    Put("MACHINE " & Machine_name.all);
 
    New_Line(3);
+   
+   -- CONSTRAINTS clause
    Put_line("CONSTRAINTS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -268,6 +278,8 @@ begin
    end loop;
    
    New_Line(2);
+   
+   -- SETS clause
    Put_line("SETS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -277,6 +289,8 @@ begin
    end loop;
 
    New_Line(2);
+   
+   -- DEFINITIONS clause
    Put_line("DEFINITIONS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -286,6 +300,8 @@ begin
    end loop;
 
    New_Line(2);
+
+   -- CONSTANTS clause
    Put_line("CONSTANTS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -295,6 +311,8 @@ begin
    end loop;
 
    New_Line(2);
+   
+   -- PROPERTIES clause
    Put_line("PROPERTIES ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -304,6 +322,8 @@ begin
    end loop;
 
    New_Line(2);
+
+   -- VARIABLES clause
    Put_line("VARIABLES ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -313,6 +333,8 @@ begin
    end loop;
   
    New_Line;
+
+   -- INVARIANT clause
    Put_line("INVARIANT ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -322,6 +344,8 @@ begin
    end loop;
   
    New_Line;
+
+   -- INITIALISATION clause
    Put_line("INITIALISATION ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -331,6 +355,8 @@ begin
    end loop;
   
    New_Line;
+
+   -- OPERATIONS clause
    Put_Line("OPERATIONS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -340,11 +366,17 @@ begin
    end loop;
    
    New_Line(2);
+   
+   -- AMN (End of the Machine)
    Put_line("END");
+
    -- close the output file
    Close(F_Out);
-   Put_Line(Standard_Output, "File mch closed");   
+   
+   -- stdout messages
+   Put_Line(Standard_Output, "File " & B_Filename.all & " closed");   
    Put_Line(Standard_Output, "Done!");   
+
 end Main;
 
 --type SystemVar is record
