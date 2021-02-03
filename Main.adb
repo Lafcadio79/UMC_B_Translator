@@ -249,7 +249,7 @@ begin
 
    -- creation of the output file
    Create(F_Out, Out_File, "prova.mch");
-   -- redirect of the stdout to such file
+   -- redirect the stdout to the F_Out file
    Set_Output(F_Out);
    
    Put_Line(Standard_Output, "File mch created");
