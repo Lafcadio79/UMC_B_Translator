@@ -1,4 +1,4 @@
--- predefined libraries (not to be modified!)
+-- predefined UMC libraries (not to be modified!)
 with Flags;
 with UML_Types;
 with UML_Parser;
@@ -22,12 +22,17 @@ procedure Main is
    use Ada.Strings.Fixed;
    use Ada.Characters.Handling;
 
-   ------------------------------------------------------------
-   -- object, variable, procedure, and function declarations --
-   ------------------------------------------------------------
+   --------------------------------------
+   -- object and variable declarations --
+   --------------------------------------
    F_Out       : File_Type;
    This_Chart  : Chart;
    UMCfilename : String_ref;
+   Machine_name: String_ref;
+   
+   ----------------
+   -- Procedures --
+   ----------------
    
    -- procedure set_variables (SD: Natural) is separate;
    -- The procedure takes from the UMC model all the object and variable names
@@ -102,6 +107,9 @@ procedure Main is
       end loop;
    end print_varinitvalues;
 
+   ---------------
+   -- Functions --
+   ---------------
 
    -- returns the simplename fragment of a state fullname
    function Simple (full: String) return String is
@@ -163,6 +171,8 @@ procedure Main is
       end if;
    end print_actions;
 
+
+   -- LAVORARE PER ESTENDERE QUESTA PROCEDURA
    procedure print_transitions(SD: Natural) is
       HasTrigger: Boolean := False;
    begin
@@ -172,11 +182,13 @@ procedure Main is
          --  Import preceding comments
          if This_Chart.ChartTransitions(K).Comms.all'Length >0 then
             for I in This_Chart.ChartTransitions(K).Comms.all'Range loop
+			   -- print comments
                Put_Line(This_Chart.ChartTransitions(K).Comms(I).all);
             end loop;
          end if;
          --  Operation NAME
          if This_Chart.ChartTransitions(K).label /= null then
+		    -- print transition labels
             Put_Line (This_Chart.Name.all & "_" & This_Chart.ChartTransitions(K).label.all & " =");
          else
             Put_Line (This_Chart.Name.all & "_nolabel" & Trim(k'Img, Left) & " =");
@@ -184,16 +196,25 @@ procedure Main is
          --
          Put_Line ("PRE");
          -- Trigger CONDITION
+		 -- if the transitions table is not empty and the trigger name is not equal to "-" then
          if This_Chart.ChartTransitions(K).trigger /= null and then
            This_Chart.ChartTransitions(K).trigger.name.all /= "-" then
             hasTrigger := True;
             Put_line("  " & This_Chart.Name.all & "_buff /= [] & ");
-            Put_line("  first(" & This_Chart.Name.all & "_buff) = " &
+--            Put_line(Standard_Output, "  " & This_Chart.Name.all & "_buff /= [] & "); --EXTRA
+--            Put_line(Standard_Output, "  first(" & This_Chart.Name.all & "_buff) = " &
+--					   This_Chart.Name.all & "_" &
+--                       This_Chart.ChartTransitions(K).trigger.name.all & " & "); --EXTRA
+			Put_line("  first(" & This_Chart.Name.all & "_buff) = " &
                        This_Chart.Name.all & "_" &
                        This_Chart.ChartTransitions(K).trigger.name.all & " & ");
+                       
          end if;
+		 
          --  Guard CONDITION
          --      to be done !!!
+		 
+		 
          -- Source STATE CONDITION
          Put_Line("  " & This_Chart.name.all & "_STATUS = " & 
                     Simple(This_Chart.ChartTransitions(K).Source(1).FullName.all));
@@ -218,11 +239,12 @@ procedure Main is
 -- Main body --
 ---------------
 begin
-   if Ada.Command_Line.Argument_Count = 0  then
-      Put_Line (" Usage:   Main   UMCFilename");
+   if Ada.Command_Line.Argument_Count <= 1  then
+      Put_Line (" Usage:   Main   UMCFilename   ProB_Machine_Name");
       return;
    end if;
-   UMCfilename := new String'(Ada.Command_Line.Argument(1)) ;
+   UMCfilename  := new String'(Ada.Command_Line.Argument(1));
+   Machine_name := new String'(Ada.Command_Line.Argument(2));
    parse(UMCfilename.all);
    -----
    
@@ -236,6 +258,54 @@ begin
    Put_Line(Standard_Output, "Translating ...");
    
    New_Line;
+   Put("MACHINE " & Machine_name.all);
+
+   New_Line(3);
+   Put_line("CONSTRAINTS ");
+   for I in All_Charts'Range loop
+      if Is_Active_Chart(I) then
+         This_Chart := All_Charts(I);
+         -- Procedure/Function TODO
+      end if;
+   end loop;
+   
+   New_Line(2);
+   Put_line("SETS ");
+   for I in All_Charts'Range loop
+      if Is_Active_Chart(I) then
+         This_Chart := All_Charts(I);
+         -- Procedure/Function TODO
+      end if;
+   end loop;
+
+   New_Line(2);
+   Put_line("DEFINITIONS ");
+   for I in All_Charts'Range loop
+      if Is_Active_Chart(I) then
+         This_Chart := All_Charts(I);
+         -- Procedure/Function TODO
+      end if;
+   end loop;
+
+   New_Line(2);
+   Put_line("CONSTANTS ");
+   for I in All_Charts'Range loop
+      if Is_Active_Chart(I) then
+         This_Chart := All_Charts(I);
+         -- Procedure/Function TODO
+      end if;
+   end loop;
+
+   New_Line(2);
+   Put_line("PROPERTIES ");
+   for I in All_Charts'Range loop
+      if Is_Active_Chart(I) then
+         This_Chart := All_Charts(I);
+         -- Procedure/Function TODO
+      end if;
+   end loop;
+
+   New_Line(2);
    Put_line("VARIABLES ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
@@ -263,7 +333,7 @@ begin
    end loop;
   
    New_Line;
-   Put_line("OPERATIONS ");
+   Put_Line("OPERATIONS ");
    for I in All_Charts'Range loop
       if Is_Active_Chart(I) then
          This_Chart := All_Charts(I);
@@ -271,6 +341,8 @@ begin
       end if;
    end loop;
    
+   New_Line(2);
+   Put_line("END");
    -- close of the output file
    Close(F_Out);
    Put_Line(Standard_Output, "File mch closed");   
