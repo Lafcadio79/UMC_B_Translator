@@ -30,19 +30,19 @@ procedure Main is
    UMCfilename : String_ref;
    Machine_name: String_ref;
    
-   ----------------
-   -- Procedures --
-   ----------------
+   ----------------------------
+   -- Procedures & Functions --
+   ----------------------------
    
    -- procedure set_variables (SD: Natural) is separate;
-   
-   procedure print_varnames (SD: Natural) is
+
    -- Such procedure takes from the UMC model all the object and variable names
    -- (within the body of the OBJECT and VARS clauses) and returns a list of
    -- variable labels prefixed with respect to the class objects.
    --
    -- e.g. Being O = {O1, O2} the set of the objects and V={a,b,c} the set of variables,
    -- the the procedure returns the cartesian product OxV={O1_a, O1_b, O1_c, O2_a, O2_b, O2_c}
+   procedure print_varnames (SD: Natural) is
    begin
       This_Chart := All_Charts(SD);
       Put_Line ("-- " & All_Charts(SD).Name.all);
@@ -107,10 +107,7 @@ procedure Main is
          end if;
       end loop;
    end print_varinitvalues;
-
-   ---------------
-   -- Functions --
-   ---------------
+   
 
    -- returns the simplename fragment of a state fullname
    function Simple (full: String) return String is
