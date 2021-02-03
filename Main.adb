@@ -240,7 +240,7 @@ procedure Main is
 ---------------
 begin
    if Ada.Command_Line.Argument_Count <= 1  then
-      Put_Line (" Usage:   Main   UMCFilename   ProB_Machine_Name");
+      Put_Line (" Usage:   Main   UMCFilename   Machine_Name");
       return;
    end if;
    UMCfilename  := new String'(Ada.Command_Line.Argument(1));
