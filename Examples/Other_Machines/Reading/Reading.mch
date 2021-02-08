@@ -1,7 +1,6 @@
 /*  
  *
- * La macchina Reading tiene traccia sia
- * dei libri che gli alunni hanno letto
+ * La macchina Reading tiene traccia sia dei libri che gli alunni hanno letto
  * che di quelli ancora in fase di lettura 
  *
  */
@@ -27,7 +26,8 @@
 
     (r_1;r_2)   composizione relazionale
 
-	Insiemi
+
+    Insiemi
 	
     S\/T        unione
 
@@ -35,26 +35,27 @@
 
     card(S)     cardinalità
 
-	S/\T		intersezione
+    S/\T	intersezione
 
     {}          insieme vuoto
 
     s:S         appartenenza
 	
-	s/:S		non appartenenza
+    s/:S	non appartenenza
 	
-	Funzioni
+
+    Funzioni
 	
     ran(S)      campo
 
     dom(S)      dominio
 
-	-->>		funzione suriettiva totale (ogni elemento del codominio è immagine di almeno un elemento del dominio)
+    -->>	funzione suriettiva totale (ogni elemento del codominio è immagine di almeno un elemento del dominio)
 
-	>+>			funzione iniettiva parziale (associa a elementi distinti del dominio elementi distinti del codominio)
+    >+>		funzione iniettiva parziale (associa a elementi distinti del dominio elementi distinti del codominio)
 	
 	
-	Descrizione:
+    Descrizione:
 	
 	Di ogni libro possono esserci più copie quindi vengono introditti gli insiemi COPY e BOOK. Il primo (COPY) tiene
 	traccia delle copie individuali in circolazione, il secondo (BOOK) tiene traccia dei libri letti.
