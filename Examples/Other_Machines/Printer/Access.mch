@@ -11,13 +11,13 @@
 
 	S\/T 		unione
 	s|->t		mappa a
-	{}			insieme
+	{}		insieme vuoto
 	S<->T		relazione	
 
-	=			uguaglianza
-	:=			assegnamento
-	& 			congiunzione
-	:			appartenenza
+	=		uguaglianza
+	:=		assegnamento
+	& 		congiunzione
+	:		appartenenza
 
 	r[S]		immagine relazionale
 	r|>S		restrizione del campo
