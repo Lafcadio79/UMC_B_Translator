@@ -12,9 +12,10 @@
 
     :=          assegnamento
 
-	&           congiunzione
+    &           congiunzione
 	
-	Relazioni
+
+    Relazioni
 	
     S<->T     	relazione   
 	
