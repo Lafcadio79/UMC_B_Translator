@@ -1,0 +1,34 @@
+RECENT CHANGES
+
+- UMC2B  imports more standard library on strings and chars.
+- The parser has been extended to handle comments in the source text files and bounded int types.
+- Examples of access to UMS state names and UMC transition data are shown, with 
+   prototipical version of translation of UML transitions into PROB opertions
+
+
+ASSUMPTIONS  and CONSTRAINTS
+
+- All class variables must have an initial value (unless initialised at object creation time).
+
+- Signals Buffers have "[]" as initial value
+- Data Buffers have "[]" as initial value
+
+- suported types of UMC variables are 
+   var: 0..n   := someliteral;
+   var: int    := someliteral;
+   var: int[]  := [];
+   var: obj;   -- constant value initised statically (possibly at object instantiation time)
+   
+- Within a StateChart the names of simple states are unique.
+
+- All transitions have simple states as source and target.
+
+- Actions are plain assignments to variables, or sending of signals, or conditionals,
+  
+- Signals have at most one parameter of type int[][] with name "data"
+
+- The first transition of the state machine diagram identifies the default initial state.
+
+- if boolean conditions are just numerical relations  < > = >0 <=
+
+- transition labels are UNIQUE in the system

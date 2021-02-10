@@ -1,0 +1,1122 @@
+-- V19:   ICSL  wait Disconnect_indication before reconnecting.
+-- modifications from V18:
+--   added in ICSL variable wait_disconnect_indication (initially False)
+--   R2_ICSL,  
+--     When in NOCOMM  is received sai_disconnect_indication  
+--     wait_disconnect_indication <- false
+--   R17_ICSL_saidisconnreq,
+--     When from COMM we move to NOCOMM sending sai_disconnect_request  
+--     wait_disconnect_indication <- true 
+--  ASSUMPTION:  ISAI Always replies with disconnect_request to CSL disconnect indications
+--     Also if already in nocomm state
+-----------------------------------------------
+Class I_CSL is
+-----------------------------------------------
+Signals
+  ISAI_CONNECT_confirm;
+  ISAI_DISCONNECT_indication;
+  ISAI_Error_report;
+  ISAI_DATA_indication(data);
+  --
+  
+-- Operations
+  IRBC_User_Data_request(data);
+  icsl_tick; 
+  
+  --  SAI CONNECTIONS ARE AUTONUMOUS, not requsted by RBC_User
+  
+  --       OUTGOING signals
+  -- ISAI_CONNECT_request;
+  -- ISAI_CONNECT_request;
+  -- ISAI_DATA_request(data);
+  -- RBC_User_Connect_indication;
+  -- RBC_User_Disconnect_indication;
+  -- RBC_User_Data_indication(data);
+  
+Vars
+  RBC_User:obj;
+  SAI:obj;
+  receiveTimer: 0..10 := 0;
+  sendTimer:    0..10 := 0;   
+  -------------
+  max_receiveTimer: 0..10 := 4;  -- CONFIGURATION PARAM
+  max_sendTimer:    0..9 :=  3;  -- CONFIGURATION PARAM
+  max_connectTimer: 0..5 :=  2;  -- CONFIGURATION PARAM
+  connectTimer:     0..5 :=  2;  -- SAME VALUE of max_connectTimer
+  connecting: bool := False;
+  -------------
+  wait_disconnect_indication: bool := False;   --!!  V19
+  -------------
+
+Behaviour
+
+-------------------------------------------------------------
+-- when disconnetted ignore datas and SAI_Notifications,
+-------------------------------------------------------------
+
+R1_ICSL_discuserdata:
+   NOCOMMS -> NOCOMMS 
+      {IRBC_User_Data_request(data)/
+       OUT.R1_ICSL_discuserdata}
+  
+R2_ICSL_discdisconnind:
+   NOCOMMS -> NOCOMMS 
+      {ISAI_DISCONNECT_indication/
+        wait_disconnect_indication := False;    --!!   V19
+        OUT.R2_ICSL_discdisconnind}
+  
+R3_ICSL_discerrorreport:
+   NOCOMMS -> NOCOMMS 
+      {ISAI_Error_report/
+        OUT.R3_ICSL_discerrorreport}
+  
+R4_ICSL_discdataind:
+   NOCOMMS -> NOCOMMS 
+     {ISAI_DATA_indication(data)/
+       OUT.R4_ICSL_discdataind}
+   
+   
+-------------------------------------------------------------
+-- establishing connections 
+-------------------------------------------------------------
+
+-- when disconnected issue new SAI connection request
+--
+R6_ICSL_okicsl:
+   NOCOMMS -> tbc6 
+      {icsl_tick 
+         [connectTimer = max_connectTimer] /
+         Timer.ok_icsl; }
+         
+R6_ICSL_connectreq:
+   tbc6 -> NOCOMMS 
+      {- /
+         connectTimer := 0;
+         SAI.ISAI_CONNECT_request; }
+
+-- when connecting handle clock cycles 
+--   and ignore all other RBC_Users but connection confirmations
+R7_ICSL_okicsl:
+  NOCOMMS -> NOCOMMS 
+      {icsl_tick 
+          [connectTimer < max_connectTimer] / 
+       connectTimer := connectTimer +1;
+        Timer.ok_icsl;}
+
+-- when connecting handle connection confirmation
+--
+R8_ICSL_userconnind:
+  NOCOMMS -> COMMS 
+     {ISAI_CONNECT_confirm   / 
+        connectTimer := max_connectTimer; 
+        receiveTimer := 0;
+        sendTimer := 0; 
+        RBC_User.IRBC_User_Connect_indication;}
+
+  --------------------------------
+  -- handling active connections 
+  --------------------------------
+  
+-- when connected forward RBC_User datas    
+--    
+R10_ICSL_saidatareq:
+  COMMS -> COMMS 
+     {IRBC_User_Data_request(data) /
+        sendTimer := 0;
+        SAI.ISAI_DATA_request(data); }
+            
+            
+-- when connected, in no send or receive timers are expired, adjust timers
+--
+R11_ICSL_okicsl:
+  COMMS -> COMMS 
+      {icsl_tick [(receiveTimer < max_receiveTimer)
+               and (sendTimer < max_sendTimer)] / 
+         sendTimer := sendTimer +1;
+         receiveTimer := receiveTimer+1; 
+         Timer.ok_icsl;}
+        
+-- when connected, if the receive timer is not expired but send timer is expired, 
+-- send lifesign
+R12_ICSL_okicsl:
+  COMMS -> tbc12
+      {icsl_tick [(receiveTimer < max_receiveTimer)
+               and (sendTimer = max_sendTimer)] /
+         sendTimer := 0; 
+         receiveTimer := receiveTimer+1;
+         Timer.ok_icsl;}
+
+R12_ICSL_saidatareq:
+ tbc12 -> COMMS 
+       { - /
+         SAI.ISAI_DATA_request([LifeSign,0]); }
+           
+  -- when connected, is msg received from sai,forward to user and 
+  --  reset receive timer; 
+R13_ICSL_userdataind:
+  COMMS -> COMMS 
+     {ISAI_DATA_indication(data) 
+         [data.head  /= LifeSign] /
+        receiveTimer := 0;
+        RBC_User.IRBC_User_Data_indication(data);
+      }
+
+
+-- when connected, if lifesign received from sai, reset receive timer;
+--  
+R14_ICSL_handlelifesign:
+  COMMS -> COMMS 
+      {ISAI_DATA_indication(data) 
+           [data.head = LifeSign] /
+         receiveTimer := 0;
+         OUT.R14_ICSL_handlelifesign}
+
+-- when connected, ignore ISAI_Error_report
+--
+R15_ICSL_usererror:
+  COMMS -> COMMS 
+      {ISAI_Error_report /
+       OUT.R15_ICSL_usererror}
+  
+-- when connected, disconnect and forward notification when notified by SAI
+-- (and clear timers)
+--
+R16_ICSL_userdisconnind:
+  COMMS -> NOCOMMS 
+     {ISAI_DISCONNECT_indication /
+        receiveTimer := 0;
+        sendTimer := 0;
+        RBC_User.IRBC_User_Disconnect_indication; } 
+  
+  
+-- when connected, if receive timer expires,disconnect, notify RBC_User and 
+--  request SAI termination
+--
+R17_ICSL_okicsl_userdisconnind_saidisconnreq:
+  COMMS -> tbc17a 
+      { icsl_tick [receiveTimer = max_receiveTimer] / 
+          Timer.ok_icsl; }
+
+R17_ICSL_saidisconnreq:
+tbc17a -> tbc17b 
+      { - /
+          receiveTimer := 0;
+          sendTimer := 0;
+          wait_disconnect_indication := True;    --!!  V19
+          SAI.ISAI_DISCONNECT_request;}
+        
+R17_ICSL_userdisconnind:        
+tbc17b -> NOCOMMS
+     { - /   
+        RBC_User.IRBC_User_Disconnect_indication;}
+     
+end I_CSL;
+
+
+-----------------------------------------------
+Class I_SAI is 
+-----------------------------------------------
+Signals
+  --
+  ISAI_Sa_CONN_confirm;
+  ISAI_Sa_DATA(data);
+  ISAI_Sa_CONN_terminate;
+  --
+-- Operations  
+  ISAI_CONNECT_request;
+  ISAI_DISCONNECT_request;  
+  ISAI_DATA_request(data);
+  isai_tick;
+  
+  --       OUTGOING signals
+  -- ISAI_CONNECT_confirm;
+  -- ISAI_DISCONNECT_indication;
+  -- ISAI_DATA_indication(data);
+  -- ISAI_Error_report;
+  
+  -- Sa_CONN_request;
+  -- ISAI_Sa_DATA(data);
+  
+  
+Vars
+  NSAI:obj;
+  CSL:obj;
+  N: 0..10 := 1; 
+  -- private
+  sent_but_not_yet_received: 0..30 :=0; -- 0..N
+  
+Behaviour
+  --------------------------------
+  -- handling disconnections 
+  --------------------------------
+
+  -- when disconnected handle clock cycles and ignore all OUTs 
+  --   but connection requests 
+
+R1_ISAI_okisai:
+  Disconnected -> Disconnected 
+     {isai_tick / 
+     Timer.ok_isai}
+     
+R2_ISAI_discsaconnterminate:
+  Disconnected -> Disconnected 
+    {ISAI_Sa_CONN_terminate /
+     OUT.R2_ISAI_discsaconnterminate}
+  
+R3_ISAI_discsadata:
+  Disconnected -> Disconnected 
+    {ISAI_Sa_DATA(data)/
+       OUT.R3_ISAI_discsadata}
+  
+R4_ISAI_discsaidatareq:
+  Disconnected -> Disconnected 
+     {ISAI_DATA_request(data)/
+        OUT.R4_ISAI_discsaidatareq}
+  
+R5_ISAI_discsaidisconnreq:
+  Disconnected -> Disconnected 
+    {ISAI_DISCONNECT_request/
+       CSL.ISAI_DISCONNECT_indication;}   --!!  V19
+  
+R6_ISAI_discsaconnconfirm:
+  Disconnected -> Disconnected 
+     {ISAI_Sa_CONN_confirm/
+       OUT.R6_ISAI_discsaconnconfirm}
+
+  -- when disconnected accept connection requests from RBC
+R7_ISAI_sacconnreq:
+  Disconnected -> Connecting 
+      {ISAI_CONNECT_request / 
+         sent_but_not_yet_received :=0;
+         NSAI.CSAI_Sa_CONN_request;
+       }
+         
+  --------------------------------
+  -- establishing preconnections 
+  --------------------------------
+  
+  -- when connecting handle clock cycles 
+  --   and ignore all OUTs but connection confirmations 
+  -- Notice:  also repeated RBC_Conect_request are ignored.
+  
+R8_ISAI_okisai:
+  Connecting -> Connecting 
+   {isai_tick /
+      Timer.ok_isai}
+  
+R9_ISAI_discsaconnterminate:
+  Connecting -> Connecting 
+   {ISAI_Sa_CONN_terminate /
+     OUT.R9_ISAI_discsaconnterminate}
+  
+R10_ISAI_discsadata:
+  Connecting -> Connecting 
+    {ISAI_Sa_DATA(data)/
+      OUT.R10_ISAI_discsadata}
+
+R11_ISAI_discsaidatareq:
+  Connecting -> Connecting 
+    {ISAI_DATA_request(data)/
+      OUT.R11_ISAI_discsaidatareq}
+  
+R12_ISAI_discsaidisconnreq:
+  Connecting -> Connecting 
+    {ISAI_DISCONNECT_request/
+       CSL.ISAI_DISCONNECT_indication; }   --!! V19
+  
+  -- when requested by, try connection again.
+R13_ISAI_saconnreq:
+  Connecting -> Connecting 
+      {ISAI_CONNECT_request / 
+         sent_but_not_yet_received :=0;
+         NSAI.CSAI_Sa_CONN_request;
+       }
+
+  -- ER loss of connection confirmation message
+R14_ISAI_saconnconfirmloss:
+  Connecting -> Connecting 
+      {ISAI_Sa_CONN_confirm /
+        OUT.R14_ISAI_saconnconfirmloss}
+        
+  -- connection confirmation arrived from neighbor SAI
+R15_ISAI_saiconnectconfirm:
+  Connecting -> Connected 
+      {ISAI_Sa_CONN_confirm /
+       CSL.ISAI_CONNECT_confirm; }
+
+  --------------------------------
+  -- handling connections 
+  --------------------------------
+  
+  -- when connected handle clock cycles 
+R16_ISAI_okisai:
+  Connected ->  Connected 
+    {isai_tick /
+     Timer.ok_isai}
+  
+  -- when already connected further repeated RBC_Conect_request are ignored.
+R17_ISAI_discsaiconnreq:
+  Connected -> Connecting 
+     {ISAI_CONNECT_request/
+       OUT.R17_ISAI_discsaiconnreq}
+   
+  ---------------------------------
+  -- sending CSL messages NSAI
+  --------------------------------
+  
+  -- send NRBC msg to NSAI
+R18_ISAI_sadata:
+  Connected -> Connected 
+      {ISAI_DATA_request(data)  / 
+         NSAI.CSAI_Sa_DATA(data);
+      }
+
+  ---------------------------------
+  -- receiving or losing messages
+  --------------------------------
+  -- not yet evident msg delay or loss (abstraction of ER layer)
+  --  NOTICE: no need to increment counet to a value greater than N
+R19_ISAI_sadataloss:
+  Connected -> Connected 
+      {ISAI_Sa_DATA(data) [sent_but_not_yet_received < N]/ 
+       sent_but_not_yet_received := sent_but_not_yet_received+1; 
+        OUT.R19_ISAI_sadataloss}
+
+  -- do not deliver to APP invalid msgs (too late but in correct sequence)
+R20_ISAI_sadatainvalid_saierrorreport:
+  Connected -> Connected 
+      {ISAI_Sa_DATA(data) [sent_but_not_yet_received = 0] 
+--       / 
+--       CSL.ISAI_Error_report;
+       }
+
+
+  -- deliver NRBC Msg to APP
+  --  with no other notification if not invalid and not out of sequence
+R21_ISAI_dataind:
+  Connected -> Connected 
+      {ISAI_Sa_DATA(data) [sent_but_not_yet_received = 0] / 
+       CSL.ISAI_DATA_indication(data);
+       }
+
+  -- deliver NRBC Msg if not invalid but slightly out of sequence, 
+  --  and notify the error
+R22_ISAI_saidataind:
+  Connected -> tbc22 
+      {ISAI_Sa_DATA(data) 
+          [sent_but_not_yet_received < N and sent_but_not_yet_received > 0] / 
+         sent_but_not_yet_received :=0;
+         CSL.ISAI_DATA_indication(data);
+       }
+
+R22_ISAI_saierrorreport:
+  tbc22 -> Connected 
+      {- /  
+       CSL.ISAI_Error_report;
+       }
+       
+  -- do not deliver NRBC Msg if invalid, when slightly out of sequence, 
+  --  but notify both error situations
+R23_ISAI_saierrorreport:
+  Connected -> Connected 
+      {ISAI_Sa_DATA(data) 
+          [sent_but_not_yet_received < N and sent_but_not_yet_received > 0] / 
+        sent_but_not_yet_received :=0;
+--        CSL.ISAI_Error_report;
+       }
+
+  ---------------------------------
+  -- handling disconnections
+  --------------------------------
+  
+ -- notify disconnection if the last msgs shows an excessive msg delay or loss
+R24_ISAI_saconnterminate:
+  Connected -> tbc24 
+      {ISAI_Sa_DATA(data) [sent_but_not_yet_received = N] / 
+         sent_but_not_yet_received :=0;
+         NSAI.CSAI_Sa_CONN_terminate;     
+       }
+
+R24_ISAI_saidisconnind:
+  tbc24 -> Disconnected 
+      {- / 
+         CSL.ISAI_DISCONNECT_indication;
+       }
+       
+  -- when connected, become disconnected upon termination request from RBC
+R25_ISAI_saconnterminate:
+  Connected  -> tbc25
+    {ISAI_DISCONNECT_request /
+       sent_but_not_yet_received :=0;
+       NSAI.CSAI_Sa_CONN_terminate;
+    }
+
+  -- when connected, become disconnected upon termination request from RBC
+R25_CSAI_reply_disconn_ind:
+  tbc25  -> Disconnected
+    { - /
+       CSL.ISAI_DISCONNECT_indication;              --!!  V19
+    }
+
+
+  -- when connected, become disconnected upon termination request from NSAI
+R26_ISAI_saidisconnind:
+   Connected ->  Disconnected
+      {ISAI_Sa_CONN_terminate /
+        sent_but_not_yet_received :=0; 
+        CSL.ISAI_DISCONNECT_indication;}
+
+
+  -- But disconnection indication from ER can get lost!!
+R27_ISAI_saconnterminateloss:
+   Connected ->  Connected
+      {ISAI_Sa_CONN_terminate /
+       R27_ISAI_saconnterminateloss}
+      
+end I_SAI;
+
+-----------------------------------------------
+Class C_SAI is
+-----------------------------------------------
+Signals
+  CSAI_Sa_CONN_request;
+  CSAI_Sa_DATA(data);
+  CSAI_Sa_CONN_terminate;
+
+-- Operations  
+  CSAI_DISCONNECT_request;  
+  CSAI_DATA_request(data);
+  csai_tick;
+  
+  --  OUTGOING signals
+  -- CSAI_CONNECT_indication;
+  -- CSAI_DISCONNECT_indication;
+  -- CSAI_DATA_indication(data);
+  -- CSAI_Error_report;
+  
+  -- ISAI_Sa_CONN_confirm;
+  -- CSAI_Sa_DATA(data);
+  
+Vars
+  NSAI:obj;
+  CSL:obj;
+  sent_but_not_yet_received: 0..30 :=0;
+  N: 0..10 := 1;  
+  
+Behaviour
+  --------------------------------
+  -- handling disconnections 
+  --------------------------------
+  
+  -- when disconnected handle clock cycles and ignore all OUTs 
+  --   but connection requests 
+
+R1_CSAI_okcsai:
+  Disconnected -> Disconnected 
+     {csai_tick/ 
+        Timer.ok_csai}
+  
+R2_CSAI_discsaconnterminate:
+  Disconnected -> Disconnected 
+     {CSAI_Sa_CONN_terminate /
+       OUT.R2_CSAI_discsaconnterminate}
+  
+R3_CSAI_discsadata:
+  Disconnected -> Disconnected 
+     {CSAI_Sa_DATA(data) /
+       OUT.R3_CSAI_discsadata}
+  
+R4_CSAI_discsaidatareq:
+  Disconnected -> Disconnected 
+     {CSAI_DATA_request(data)/
+       OUT.R4_CSAI_discsaidatareq }
+  
+R5_CSAI_discsaidisconnreq:
+  Disconnected -> Disconnected {
+     CSAI_DISCONNECT_request /
+       CSL.CSAI_DISCONNECT_indication}    --!!  V19
+  
+  --  model also the ER level loss of connection request
+R6_CSAI_discsaconnreq:
+  Disconnected -> Disconnected 
+     {CSAI_Sa_CONN_request /
+       OUT.R6_CSAI_discsaconnreq}
+     
+  -- wait NSAI connection requests to establish connection
+R7_CSAI_saconnconfirm:
+  Disconnected -> tbc7 
+      {CSAI_Sa_CONN_request / 
+         sent_but_not_yet_received :=0; 
+         NSAI.ISAI_Sa_CONN_confirm;}
+         
+R7_CSAI_saiconnind:
+  tbc7 -> Connected 
+      {- / 
+         CSL.CSAI_CONNECT_indication; }
+         
+  --------------------------------
+  -- handling connections 
+  --------------------------------
+  
+  -- when connected handle clock cycles 
+R8_CSAI_okcsai:
+  Connected ->  Connected 
+     {csai_tick / 
+        Timer.ok_csai}
+  
+  -- connection reset by NSAI initiator
+  -- notice: this should never happen if new connection request must be preceded 
+  --          by previous connection termination!!
+R9_CSAI_saconnconfirm_saiconnind:
+  Connected -> tbc9
+      {CSAI_Sa_CONN_request / 
+         sent_but_not_yet_received :=0;
+         NSAI.ISAI_Sa_CONN_confirm;}
+         
+  tbc9 -> Connected 
+      {- / 
+         CSL.CSAI_CONNECT_indication; }
+
+
+R10_CSAI_saconnreqloss:
+  Connected -> Connected  
+     {CSAI_Sa_CONN_request /
+       OUT.R10_CSAI_saconnreqloss}
+  
+  ---------------------------------
+  -- sending CSL messages NSAI
+  --------------------------------
+  
+  -- send NRBC msg to NSAI
+R18_CSAI_sadata:
+  Connected -> Connected 
+      {CSAI_DATA_request(data)  /
+         NSAI.ISAI_Sa_DATA(data); }
+
+  
+  ---------------------------------
+  -- receiving or losing messages
+  --------------------------------
+  
+  -- not yet evident msg delay or loss (abstraction of ER layer)
+  --  NOTICE: no need to increment count to a value greater than N
+R19_CSAI_sadataloss :
+  Connected -> Connected 
+      {CSAI_Sa_DATA(data) [sent_but_not_yet_received < N]/ 
+         sent_but_not_yet_received := sent_but_not_yet_received+1; 
+         OUT.R19_CSAI_sadataloss
+      }
+
+
+-- !! Notice the actual order of data_indication and Error report is not specified,
+--    but in our case unrelevant !!
+
+  -- do not deliver to APP invalid msgs (too late but in correct sequence)
+R20_CSAI_invalidreport:
+  Connected -> Connected 
+      {CSAI_Sa_DATA(data) [sent_but_not_yet_received = 0] 
+--      / 
+--         CSL.CSAI_Error_report;
+       }
+
+  -- deliver NRBC Msg to APP
+  --  with no other notification if not invalid and not out of sequence
+R21_CSAI_dataind:
+  Connected -> Connected 
+      {CSAI_Sa_DATA(data) [sent_but_not_yet_received = 0] / 
+         CSL.CSAI_DATA_indication(data);
+       }
+
+  -- deliver NRBC Msg if not invalid but slightly out of sequence, 
+  --   and notify the error
+R22_CSAI_saidataind:
+  Connected -> tbc22 
+      {CSAI_Sa_DATA(data) 
+          [sent_but_not_yet_received < N and sent_but_not_yet_received > 0] /
+         sent_but_not_yet_received :=0;
+         CSL.CSAI_DATA_indication(data); 
+       }
+
+R22_CSAI_saierrorreport:
+  tbc22 -> Connected 
+-- {-/
+--         CSL.CSAI_Error_report;
+--       }
+       
+  -- do not deliver NRBC Msg if invalid, when slightly out of sequence, 
+  --  but notify both error situations
+R23_CSAI_saierrorreport:
+  Connected -> Connected 
+      {CSAI_Sa_DATA(data) 
+          [sent_but_not_yet_received < N and sent_but_not_yet_received > 0] / 
+--         CSL.CSAI_Error_report;
+         sent_but_not_yet_received :=0;
+       }
+       
+  ---------------------------------
+  -- handling connection failures
+  --------------------------------
+  
+ -- notify disconnection if the last msgs shows an excessive msg delay or loss
+ R24_CSAI_saconnterminate:
+  Connected -> tbc24 
+      {CSAI_Sa_DATA(data) [sent_but_not_yet_received = N] / 
+         sent_but_not_yet_received :=0;
+         NSAI.ISAI_Sa_CONN_terminate;     
+       }
+
+R24_CSAI_saidisconnind:
+  tbc24 -> Disconnected 
+      {-/ 
+         CSL.CSAI_DISCONNECT_indication;
+       }
+
+
+  ---------------------------------
+  -- handling disconnection requests
+  --------------------------------
+  -- when connected, become disconnected upon termination request from RBC
+R25_CSAI_saconnterminate:
+  Connected  -> tbc
+    {CSAI_DISCONNECT_request /
+       sent_but_not_yet_received :=0;
+       NSAI.ISAI_Sa_CONN_terminate;
+     }
+     
+R25_CSAI_reply_disconn_ind:
+  tbc  -> Disconnected
+    {-  /
+       CSL.CSAI_DISCONNECT_indication;     --!!   V19
+     }
+
+  -- when connected, become disconnected upon termination request from NSAI
+R26_CSAI_saidisconnind:
+   Connected ->  Disconnected
+      {CSAI_Sa_CONN_terminate /
+         sent_but_not_yet_received :=0; 
+         CSL.CSAI_DISCONNECT_indication;}
+
+  -- But disconnection indication from ER can get lost!!
+R27_CSAI_saconnterminateloss:
+   Connected ->  Connected
+      {CSAI_Sa_CONN_terminate /
+        R27_CSAI_saconnterminateloss}
+      
+end C_SAI;
+
+
+-----------------------------------------------
+Class C_CSL is
+-----------------------------------------------
+Signals
+  CSAI_CONNECT_indication;
+  CSAI_DISCONNECT_indication;
+  CSAI_DATA_indication(data);
+  CSAI_Error_report;
+  
+-- Operations
+  CRBC_User_Data_request(data);
+  ccsl_tick;
+
+  --       OUTGOING signals
+  -- CSAI_DISCONNECT_request;
+  -- CSAI_DATA_request(data);
+  -- RBC_User_Connect_indication;
+  -- RBC_User_Disconnect_indication;
+  -- RBC_User_Data_indication(data);
+  
+Vars
+  RBC_User:obj;
+  SAI:obj;
+  -------------
+  max_receiveTimer: 0..10 := 4; -- CONFIGURATION PARAM
+  max_sendTimer:    0..9  := 3; -- CONFIGURATION PARAM
+  -------------
+  receiveTimer: 0..10 := 0;
+  sendTimer:    0..9  := 0;
+  -------------
+  
+Behaviour
+
+  --------------------------------------------------------------
+  -- when disconnetted ignore datas and SAI_Notifications, 
+  -- just handle clock cycles
+  --------------------------------------------------------------
+
+R1_CCSL_discuserdata:
+  NOCOMMS -> NOCOMMS 
+     {CRBC_User_Data_request(data) /
+       OUT.R1_CCSL_discuserdata}
+  
+R2_CCSL_discdisconnind:
+  NOCOMMS -> NOCOMMS 
+    {CSAI_DISCONNECT_indication /
+      OUT.R2_CCSL_discdisconnind}
+  
+R3_CCSL_discerrorreport:
+  NOCOMMS -> NOCOMMS 
+    {CSAI_Error_report /
+      OUT.R3_CCSL_discerrorreport}
+  
+R4_CCSL_discdataind:
+  NOCOMMS -> NOCOMMS 
+   {CSAI_DATA_indication(data) /
+     OUT.R4_CCSL_discdataind}
+         
+
+  --------------------------------
+  -- establishing connections 
+  --------------------------------
+  
+-- when disconnected just wait for SAI_CONNECT_indication
+--
+R7_CCSL_okccsl:
+  NOCOMMS -> NOCOMMS  
+     {ccsl_tick / 
+        Timer.ok_ccsl}
+
+  --------------------------------
+  -- handling connection indications 
+  --------------------------------
+  
+-- when disconnected, accept SAI_CONNECT_indication and 
+-- set send and receive timers
+--
+R8_CCSL_userconnind:
+  NOCOMMS  -> COMMS 
+    {CSAI_CONNECT_indication /  
+       receiveTimer := 0;
+       sendTimer :=0;
+       RBC_User.CRBC_User_Connect_indication; }
+        
+  -- when connected, still accept SAI connection notifications and reset timers
+R9_CCSL_userconnind:  
+  COMMS -> COMMS 
+      {CSAI_CONNECT_indication / 
+         receiveTimer := 0;
+         sendTimer := 0;
+         RBC_User.CRBC_User_Connect_indication; } 
+         
+  --------------------------------
+  -- handling active connections 
+  --------------------------------
+  
+-- when connected forward RBC_User datas 
+--
+R10_CCSL_saidatareq:       
+  COMMS -> COMMS 
+     {CRBC_User_Data_request(data) /
+       sendTimer := 0;
+       SAI.CSAI_DATA_request(data); }
+        
+  -- when connected, in no send or receive timers are expired, adjust timers
+R11_CCSL_okccsl:
+  COMMS -> COMMS 
+      {ccsl_tick [(receiveTimer < max_receiveTimer)
+               and (sendTimer < max_sendTimer)] / 
+         sendTimer := sendTimer +1;
+         receiveTimer := receiveTimer+1;
+         Timer.ok_ccsl;  }
+
+  -- when connected, if the receive timer is not expired but send timer is expired, 
+  --   send lifesign
+R12_CCSL_okccsl:
+  COMMS -> tbc12 
+      {ccsl_tick [(receiveTimer < max_receiveTimer)
+               and (sendTimer = max_sendTimer)] / 
+         sendTimer := 0; 
+         receiveTimer := receiveTimer+1;
+         Timer.ok_ccsl; }
+         
+R12_CCSL_saidatareq:   
+tbc12 -> COMMS 
+      {-/ 
+         SAI.CSAI_DATA_request([LifeSign,0]); }
+
+
+  -- when connected, is msg received from sai,forward to user and 
+  --  reset receive timer; 
+R13_CCSL_userdataind:
+  COMMS -> COMMS 
+      {CSAI_DATA_indication(data) 
+          [data.head /= LifeSign] /
+       receiveTimer := 0;
+       RBC_User.CRBC_User_Data_indication(data);
+      }
+      
+-- when connected, if lifesign received from sai, reset receive timer;
+--  
+R14_CCSL_handlelifesign:
+  COMMS -> COMMS 
+      {CSAI_DATA_indication(data) 
+        [data.head = LifeSign] /
+       receiveTimer := 0;
+       OUT.R14_CCSL_handlelifesign
+      }
+
+-- when connected, ignore CSAI_Error_report
+--
+R15_CCSL_usererror:
+  COMMS -> COMMS 
+     {CSAI_Error_report /
+       OUT.R15_CCSL_usererror}
+
+-- when connected, disconnect and forward notification when notified by SAI
+-- (and clear timers)
+--
+R16_CCSL_userdisconnind:
+  COMMS -> NOCOMMS 
+     {CSAI_DISCONNECT_indication /
+        receiveTimer := 0;
+        sendTimer := 0;
+        RBC_User.CRBC_User_Disconnect_indication; } 
+  
+-- when connected, if receive timer expires,disconnect, notify RBC_User and 
+--  request SAI termination
+--
+R17_CCSL_okccsl:
+  COMMS -> tbc17a 
+      {ccsl_tick [receiveTimer = max_receiveTimer] /  
+        Timer.ok_ccsl;}
+
+R17_CCSL_saidisconnreq:
+  tbc17a -> tbc17b 
+      {- /  
+         SAI.CSAI_DISCONNECT_request;
+         receiveTimer := 0;
+         sendTimer := 0;}
+         
+R17_CCSL_userdisconnind:
+  tbc17b -> NOCOMMS 
+      {- /  
+         RBC_User.CRBC_User_Disconnect_indication;}
+         
+end C_CSL
+
+
+-----------------------------------------------
+Class Clock is
+-----------------------------------------------
+Signals
+  ok_icsl, ok_isai, ok_csai, ok_ccsl, ok_irbc, ok_crbc;
+
+Behaviour
+
+R0_Timer_IRBC:
+s0 -> s1  
+    { - / 
+     IRBC.irbc_tick;}
+
+R1_Timer_ICSL: 
+s1 -> s2  
+    { ok_irbc / 
+     ICSL.icsl_tick;}
+
+R2_Timer_ISAI:
+s2 -> s3
+   {ok_icsl /  
+   ISAI.isai_tick; }
+  
+
+R3_Timer_CCSL:
+s3 -> s4
+   { ok_isai / 
+    CCSL.ccsl_tick; }
+
+R4_Timer_CSAI:
+s4 -> s5 
+   {ok_ccsl / 
+    CSAI.csai_tick; }
+       
+R5_Timer_CRBC:
+s5 -> s6
+    { ok_csai / 
+     CRBC.crbc_tick;}
+     
+R6_Timer_IRBC:
+s6 -> s1
+    { ok_crbc / 
+     IRBC.irbc_tick;}
+
+end Clock;
+
+
+-----------------------------------------------
+-----------------------------------------------
+
+Class I_RBC is  -- notice NOT ACTIVE CHARTS, just ENV, no pool
+Signals
+   IRBC_User_Connect_indication;
+   IRBC_User_Disconnect_indication;
+   IRBC_User_Data_indication(data);
+   irbc_tick
+Vars
+  CSL:obj;    -- CSL port
+  S:    0..20 := 0;  -- passed Steps
+  Smax: 0..10 := 10; -- max timeslots for sending messages (can be overwritten)
+  Smod: 0..4  := 2;  -- (possibly) sending only when (S mod Smod = 0)
+Behaviour
+
+R1_IRBCS_tick:
+ wait -> step
+   {irbc_tick /
+      if (S < Smax) 
+          {S := S +1 };
+      Timer.ok_irbc;}
+
+R2_IRBC_skip:
+ step -> wait 
+   {- [(S = Smax) or (S mod Smod /= 0)]/
+    OUT.R3_IRBC_skip;  
+    }
+     
+R3_IRBC_sending:
+ step -> wait 
+   {- [(S < Smax) and (S mod Smod = 0)]/ 
+       M: int := S / Smod;
+       CSL.IRBC_User_Data_request([RBCdata, M]);
+   }
+
+R4_IRBC_discard:
+ wait -> wait {IRBC_User_Connect_indication}
+ 
+R5_IRBC_discard:
+ wait -> wait {IRBC_User_Disconnect_indication}
+ 
+R6_IRBC_discard:
+ wait -> wait {IRBC_User_Data_indication(data)}
+end I_RBC;
+
+---------------------------
+Class C_RBC is  -- notice NOT ACTIVE CHARTS, just ENV, no pool
+Signals
+   CRBC_User_Connect_indication;
+   CRBC_User_Disconnect_indication;
+   CRBC_User_Data_indication(data);
+   crbc_tick
+Vars
+  CSL: obj;
+  n : 0..30 := 0;
+  last: 0..255 := 0;
+Behaviour
+
+R1_CRBC_tick:
+ wait -> wait {crbc_tick / Timer.ok_crbc;}
+ -- discard all other signals
+ 
+R2_CRBC_discard_connect_ind:
+ wait -> wait {CRBC_User_Connect_indication}
+ 
+R3_CRBC_discard_disconnect_ind:
+ wait -> wait {CRBC_User_Disconnect_indication}
+ 
+R4_CRBC_receive_data:
+ wait -> wait {CRBC_User_Data_indication(data)
+                  [data.tail.head > last] /
+                  last := data.tail.head}
+                  
+R5_CRBC_SEQUENCE_FAILURE:
+ wait -> wait {CRBC_User_Data_indication(data)
+                  [data.tail.head <= last] /
+                   OUT.SEQUENCE_FAILURE}
+end C_RBC;
+
+
+Objects:
+
+LifeSign, OtherMsg, Pre_Announce, Ack, RBCdata, RRI, TOR : Token;
+
+ICSL: I_CSL (RBC_User -> IRBC, SAI -> ISAI, 
+             max_receiveTimer -> 4, max_sendTimer -> 3, 
+             max_connectTimer -> 2, connectTimer  -> 2);
+
+ISAI: I_SAI (CSL -> ICSL, NSAI -> CSAI,  N=> 1);
+
+CSAI: C_SAI (CSL -> CCSL, NSAI -> ISAI,  N=> 1);
+            
+CCSL: C_CSL (RBC_User -> CRBC, SAI -> CSAI, 
+            max_receiveTimer  -> 4, max_sendTimer -> 3);
+
+Timer: Clock;
+
+IRBC: I_RBC (CSL -> ICSL, Smax -> 2, Smod -> 2);
+CRBC: C_RBC (CSL -> CCSL);
+
+
+-----------------------------------------------
+--  ERROR REPORTS SIGNALLING REMOVED
+--  IRBC sending messages, one every Smod timeslots, in the first Smax timeslots 
+--  V19-S2M2-4321  Stats:  745.933 (without error reports,Smax ->  2, Smod -> 2,  4-3-2-1) 
+---------
+-- V18-S2M2-4321.aut  States:    397.463 Smax ->  2, Smod -> 2,  4-3-2-1);
+-- V18-S2M2-4321.mch  States:    397.465 Smax ->  2, Smod -> 2,  4-3-2-1); (1116 secs)
+-- V18-S10M2-4321.aut States:  6.679.800 Smax -> 10, Smod -> 2,  4-3-2-1);
+-----------------------------------------------
+--  ERROR REPORTS SIGNALLING REMOVED
+--  IRBC sending messages, one every Smod timeslots, in the first Smax timeslots 
+---------
+-- (OBSERVING ONLY User_Data_Indications)
+-- V17_S11-M2+r4-s3-c2-n1-UDI.aut  =  7.556.022 states 
+-- S=11, M=2, max_receiveTimer=4, max_sendTimer=3, max_connectTimer -> 2, N=1
+---------
+-- (OBSERVING User_Data_Indications + User_Data_requests)
+-- V17_S11-M2+r4-s3-c2-n1-UDI+UDIR.aut  =  7.556.022 states  
+-- S=11, M=2, max_receiveTimer=4, max_sendTimer=3, max_connectTimer -> 2, N=1
+---------
+-- (OBSERVING Data_Indications+Data_requests)
+-- V17_S21-M2+r4-s3-c2-n1-UDI+UDIR.aut  = 27.949.304 states  (152.151 minimized divbr)
+-- S=20, M=2, max_receiveTimer=4, max_sendTimer=3, max_connectTimer -> 2, N=1
+---------
+-- (OBSERVING Data_Indications+Data_requests)
+-- V17_S41-M2+r4-s3-c2-n1-UDI+UDIR.aut  = 68.851.094 states  (383.251 minimized divbr)
+-- S=41, M=2 , max_receiveTimer=4, max_sendTimer=3, max_connectTimer -> 2, N=1
+------------------------------------------------
+-- (OBSERVING Data_Indications+Data_requests)
+-- V17_S61-M2+r4-s3-c2-n1-UDI+UDIR.aut  = 109.752.884 states (614.351 minimized divbr)
+-- S=61, M=2 , max_receiveTimer=4, max_sendTimer=3, max_connectTimer -> 2, N=1
+------------------------------------------------
+
+
+
+------------------------------------------------
+------------------------------------------------
+-- /project/umc/src/Vdev/umc2aut -i -p -b -U -l V17umc_SM.txt V17_S61-M2+r4-s3-c2-n1-UDI+UDIR.aut
+-- bcg_io V17_S61-M2+r4-s3-c2-n1-UDI+UDIR.aut V17_S61-M2+r4-s3-c2-n1-UDI+UDIR.bcg
+-- bcg_min -divbranching V17_S61-M2+r4-s3-c2-n1-UDI+UDIR.bcg V17_S61-M2+r4-s3-c2-n1-UDI+UDIR-min.bcg
+-- svl V17_S61-M2+r4-s3-c2-n1-UDI+UDIR-min.svl
+------------------------------------------------
+------------------------------------------------
+
+
+Abstractions {
+-- TLABELS
+
+Action: IRBC_User_Data_request($1)    and $1[1] = $2 -> IRBC_User_Data_request($2)
+Action: CRBC_User_Data_indication($1) and $1[1] = $2 -> CRBC_User_Data_indication($2)
+
+Action lostevent($1) -> lostevent($1)
+Action $1($*) -> $1($*)
+Action ERR.$1 -> ERROR($1)
+
+-- State:  maxqueuesize=$1  -> MQS($1)
+}
+
+--LTS generation :   
+--  /project/umc/src/Vdev/umc2aut 
+-- -x fastdepthfirst
+-- -U  uppecase labels
+-- -b no brakets
+-- -p no state predicates
+-- -tau "tau" replaces unlabelled transitions
+-- -i "i" replaces unlabelled transitions
+-- -t nolabels as "tau"
+-- -l encode action args in LOTOS format
+
+--MCRL2 COMPARE:   
+--   ltscompare -eweak-trace  -c V13S_umc+t.aut V1eS_lnt+t.aut
+--   ltscompare -edpbranching-bisim  V13S_umc+t.aut V13S_lnt+t.aut
+--   ltscompare -ebisim  V13S_umc+t.aut V13S_lnt+t.aut
+
+-- CADP COMPARE
+--   bcg_io   V10umc.aut V13S_umc.bcg
+--   bcg_cmp  -divbranching -diag diif.bcg  V13S_umc.bcg V13S_lnt.bcg

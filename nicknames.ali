@@ -1,0 +1,141 @@
+V "GNAT Lib v2018"
+P ZX
+
+RN
+RV NO_ALLOCATORS
+RV NO_DIRECT_BOOLEAN_OPERATORS
+RV NO_IO
+RV NO_LOCAL_ALLOCATORS
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_UNCHECKED_DEALLOCATION
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV SPARK_05
+
+U nicknames%b		nicknames.adb		db0e4ce4 NE OO PK GE
+W ada%s			ada.ads			ada.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+W ada.unchecked_deallocation%s
+W dyn_store%s		dyn_store.adb		dyn_store.ali
+Z flags%s		flags.ads		flags.ali
+W system%s		system.ads		system.ali
+
+U nicknames%s		nicknames.ads		55b5f7ec BN EE NE OO PK GE
+W flags%s		flags.ads		flags.ali
+
+D ada.ads		20180524051735 76789da1 ada%s
+D a-except.ads		20180524051735 291912d5 ada.exceptions%s
+D a-ioexce.ads		20180524051734 e4a01f64 ada.io_exceptions%s
+D a-stream.ads		20180524051735 119b8fb3 ada.streams%s
+D a-tags.ads		20180524051736 491b781d ada.tags%s
+D a-textio.ads		20180524051736 881db35a ada.text_io%s
+D a-unccon.ads		20180524051736 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20180524051735 eff36322 ada.unchecked_deallocation%s
+D dyn_store.ads		20210201165642 2551b70c dyn_store%s
+D dyn_store.adb		20210201170142 00c0b710 dyn_store%b
+D flags.ads		20210201071300 1a4a592c flags%s
+D interfac.ads		20180524051734 5ab55268 interfaces%s
+D i-cstrea.ads		20180524051734 e53d8b8e interfaces.c_streams%s
+D nicknames.ads		20170308080913 4fffaec0 nicknames%s
+D nicknames.adb		20210201170220 de15eaab nicknames%b
+D system.ads		20180524051735 085b6ffb system%s
+D s-crtl.ads		20180524051734 0ebbdb71 system.crtl%s
+D s-exctab.ads		20180524051736 54135002 system.exception_table%s
+D s-ficobl.ads		20180524051736 078245e4 system.file_control_block%s
+D s-parame.ads		20180524051736 48ec542b system.parameters%s
+D s-secsta.ads		20180524051736 20bbe636 system.secondary_stack%s
+D s-soflin.ads		20180524051735 a7318a92 system.soft_links%s
+D s-stache.ads		20180524051736 a37c21ec system.stack_checking%s
+D s-stalib.ads		20180524051736 09bd3940 system.standard_library%s
+D s-stoele.ads		20180524051736 2dc34a04 system.storage_elements%s
+D s-traent.ads		20180524051734 005bf670 system.traceback_entries%s
+D s-unstyp.ads		20180524051735 34867c83 system.unsigned_types%s
+D s-wchcon.ads		20180524051736 1b7d22d2 system.wch_con%s
+X 1 ada.ads
+16K9*Ada 20e8 15|3r6 5r6 5r23 24r25
+X 6 a-textio.ads
+49K13*Text_IO 471e16 15|5w10 5r27
+X 8 a-uncdea.ads
+20u15*Unchecked_Deallocation 15|3w10 24r29
+X 9 dyn_store.ads
+4k13*Dyn_Store 20e18 15|4w6 33r33 34r29
+8V16 Retrieve{15|11P8} 15|86s23[34] 92s35[33] 144s23[34] 147s35[33] 187s37[33]
+. 215s38[34]
+14U19 Store 15|106s25[33] 113s21[34] 199s21[33] 210s21[33]
+18U17 ReInitialize_DB 15|41s16[34] 42s20[33]
+X 11 flags.ads
+4K9*Flags 216e10 14|1w10 1r21
+9A9*Int_Table(integer)<integer> 14|50r57 15|214r54 217r11
+180i4*Key_Module{natural} 14|7r34
+X 14 nicknames.ads
+3+10 Element 4r42 6r23 8r30 8r46 19r31 20r32 27r36 32r32 42r52 43r30 44r29
+. 15|33r43 69r28 134r32 162r27 173r28 184r48 187r11 197r26 206r25
+4V19 Default_Initial{3+10} 15|33r52
+5V19 Mk_Key{positive} 6>12 7>12 15|84s12 143s12
+6*12 This_Elem{3+10}
+7i12 Cache_Max{natural}
+8V20 "="{boolean} 8>24 8>39 15|92r16 147r16
+8*24 Left{3+10}
+8*39 Right{3+10}
+9b5 UNUSEDThreadSafe{boolean}
+10k13*NickNames 3z10 4z19 5z19 8z20 9z5 54l9 54e18 15|6b14 229l5 229t14
+14V16*Current_Count{integer} 15|54b12 57l7 57t20
+19V16*NickNum{integer} 19>25 15|162b12 171l7 171t14 174s21 209s13
+19*25 This{3+10} 15|162b21 165r21
+20V16*NickName{string} 20>26 20>41 15|173b12 178l7 178t15
+20*26 This{3+10} 15|173b22 174r29
+20a41 Prefix{string} 15|173b37 177r14
+27V16*JustCheckNum{integer} 27>30 15|134b12 160l7 160t19
+27*30 This{3+10} 15|134b26 143r19 147r11
+32V16*CheckNum{integer} 32>26 15|69b12 124l7 124t15 165s12
+32*26 This{3+10} 15|69b22 84r19 92r11 106r32
+42V16*Retrieve{3+10} 42>26 15|184b12 191l7 191t15
+42i26 NickNum{positive} 15|184b22 187r50
+43U17*Store 43>24 43>39 15|197b13 200l7 200t12
+43*24 This{3+10} 15|197b20 199r27
+43i39 NickNum{positive} 15|197b35 199r36
+44V16*Store{integer} 44>23 15|206b12 212l7 212t12
+44*23 This{3+10} 15|206b19 209r21 210r27
+48U17*ReInitialize_DB 15|38b13 43l7 43t22
+50V16*Get_Key_Conflicts{11|9A9} 50>35 15|214b13 225l8 225t25
+50i35 Key{positive} 15|214b32 215r47
+52i7*Max_key_Conflicts{natural} 53r23 15|114r21 115m14
+X 15 nicknames.adb
+8i3 Vectors_Max{positive}
+10R8 HashK_Item 11r33 13c8 16e13 24r53 110r21
+11P8 HashK_Item_Ref(10R8) 14r11 18r20 19r30 24r65 34r40 71r10 72r11 136r10
+. 215r10
+14p5 Next{11P8} 93r22 112m14 148r22 222r21
+15i5 NickNum{integer} 92r48 111m14 118r14 147r48 155r17 221r30
+18p3 Null_HashK_Item{11P8}
+19V12 Null_Item{11P8} 19b12 22l7 22t16 34r55
+24U13 Free[8|20]
+26i3 Configurations_Count{integer} 40m5 56r12 104m10 104r34 105r15 228m4
+33K11 Elements_Store[9|4] 42r5 92r20 106r10 147r20 187r22 199r6 210r6
+34K11 Hash_Table[9|4] 41r5 86r12 113r10 144r12 215r27
+45U13 Debug_DB 45b13 50l7 50t15
+46i5 V1{integer}
+47i5 V2{integer}
+70i5 Key{natural} 84m5 86r32 113r31
+71p5 Tmp{11P8} 86m5 87r13 89r11 92r44 93m11 93r18 110m10 111r10 112r10 113r27
+. 118r10
+72p5 Orig{11P8} 87m5 112r23
+73b5 Found{boolean} 88m5 89r31 96m11 103r12 119r8
+74i5 Depth{natural} 94m11 94r20 114r13 115r35
+75i5 N{integer} 118m5 120r15 122r17
+76i4 CC{integer} 105m10 106r37 111r26
+135i5 Key{positive} 143m5 144r32
+136p5 Tmp{11P8} 144m5 146r11 147r44 148m11 148r18 155r13
+137b5 Found{boolean} 145m5 146r31 150m11 154r8
+138i5 N{integer} 155m8 156r15
+163i5 Pos{integer} 165m5 166r8 167r14 169r15
+174i5 Pos{integer} 175r38
+175a6 Static{string} 177r23 177r33
+187*8 E{14|3+10} 189r15
+207i6 tmp{positive} 209m6 210r36 211r13
+215p5 Tmp{11P8} 219r13 221r26 222m10 222r17
+216i5 Count{natural} 220m10 220r19 221r15 224r22
+217a5 keys{11|9A9} 221m10 224r14
+X 16 system.ads
+37K9*System 15|1w6 1r18 16|174e11
+

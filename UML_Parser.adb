@@ -616,7 +616,7 @@ package body UML_Parser is
    -- sets Current_Token to 1
    --  block comments within  /* ... */  are ignored !!!
    procedure  Read_Tokens(F:File_Type) is
-      Buffer: Tokens_Table(1..20000);  -- Tokens is a vector of Buffers
+      Buffer: Tokens_Table(1..1000);  -- Tokens is a vector of Buffers
       Count: Natural := 0;
       Tmp: Token;
    begin
