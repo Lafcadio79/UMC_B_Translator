@@ -82,9 +82,11 @@ CONSTANTS small
  *
  */	
  
-PROPERTIES  small <: ROOM & card(ROOM) = 120
+PROPERTIES  
+	small <: ROOM & card(ROOM) = 120
 
-VARIABLES numbers
+VARIABLES 
+	numbers
 
 INVARIANT
 	numbers : ROOM --> 0..6 & numbers[small] <: 0..4
@@ -100,23 +102,23 @@ OPERATIONS
 		END;	
 	
 	checkout (rr) = 
-		PRE		rr :ROOM
+		PRE	rr :ROOM
 		THEN	numbers(rr) := 0
 		END;
 	
 	nn <-- roomquery (rr) = 
-		PRE		rr : ROOM			
+		PRE	rr : ROOM			
 		THEN	nn := numbers(rr)
 		END;	
 
 	nn <-- vacancies = 
-				nn := card(numbers |> {0});
+			nn := card(numbers |> {0});
 
 	nn <-- totalguests = 
-				nn := SIGMA(zz).(zz : ROOM | numbers(zz));
+			nn := SIGMA(zz).(zz : ROOM | numbers(zz));
 		
 	swap (rr, ss) = 
-		PRE		rr : ROOM & ss : ROOM & (rr : small <=> ss : small)
+		PRE	rr : ROOM & ss : ROOM & (rr : small <=> ss : small)
 		THEN	numbers := numbers <+ {rr |-> numbers(ss), ss |-> numbers(rr)} 
 		END
 
