@@ -27,26 +27,27 @@
  *	Lo operazioni offerte dalla macchina sono diverse:
  *
  *		- checkin (rr, nn) 		-> prende come input un numero di stanza e un numero di ospiti (fino a 6) da assegnargli. Questa operazione richiede come precondizione
- *								   che la stanza non debba essere già occupata da qualcuno e che il numero di ospiti sia adatto alla capienza della stanza. Se tutte queste condizioni
- *								   sono verificate, allora l'operazione aggiurna le informazioni nell'array di conseguenza.
+ *						   che la stanza non debba essere già occupata da qualcuno e che il numero di ospiti sia adatto alla capienza della stanza. Se tutte queste condizioni
+ *						   sono verificate, allora l'operazione aggiurna le informazioni nell'array di conseguenza.
  *
- *		- checkout (rr)         -> accetta un qualsiasi numero di stanza come input e resetta a 0 il numero di ospiti registrato in quella stanza.
+ *		- checkout (rr)         	-> accetta un qualsiasi numero di stanza come input e resetta a 0 il numero di ospiti registrato in quella stanza.
  *
  *		- roomquery (rr)   		-> accetta un numero di stanza come input e restituisce il numero di occupanti come output. Questa operazione, assieme alla
- *								   precedente illustra comel'array possa essere aggiornato e interrogato, come ci si aspetterebbe.
+ *						   precedente illustra comel'array possa essere aggiornato e interrogato, come ci si aspetterebbe.
  *		
- *		- nn <-- totalguests    -> è un'interrogazione che restituisce il numero totale di ospiti che attualmente sono presenti nell'hotel. Questo valore
- *								   è specificato come somma del numero di occupanti in ogni stanza. Come specifica, è necessario affermare solamente quello che dovrebbe essere l'output
- *								   la modalità con cui questo valore viene calcolato è irrilevante. Questa somma è facilmente definibile con l'array "numbers".
+ *		- nn <-- totalguests    	-> è un'interrogazione che restituisce il numero totale di ospiti che attualmente sono presenti nell'hotel. Questo valore
+ *						   è specificato come somma del numero di occupanti in ogni stanza. Come specifica, è necessario affermare solamente quello che dovrebbe essere l'output
+ *						   la modalità con cui questo valore viene calcolato è irrilevante. Questa somma è facilmente definibile con l'array "numbers".
  *								   
- *		- nn <-- vacancies      -> restituisce il numero di stanze vacanti, ossia, il numero di stanze che hanno 0 occupanti. L'insieme di queste stanze corrisponderà 
- *								   all'immagine relazionale inversa dell'insieme delle stanze, e quindi il numero di stanze vacanti corrisponderà alla cardinalità di questo insieme.
- *								   Infatti, la dimensione di questo insieme sarà della stessa dimensione del suo reciproco a cui sono assegnati i valori di 0, e che consiste
- *								   per l'appunto dall'insieme di tutte le mappature corrispondenti al valore 0. DIfatti esso corrisponde al campo della funzione "numbers" limitata a 0!
- *								   Così il numero di stanze vacanti sarà dato dall'espressione card(numbers |> {0}) che descrive l'operazione.
- *		- swap (rr, ss)			-> inverte gli occupanti delle stanze rr e ss. La precondizione richiede che le stanze debbano avere la stessa dimensione: o entrambi piccole,
- *								   o entrambi grandi. L'array "numbers" traccia il numero di occupanti di ogni stanza scambiando i valori di "numbers(rr)" e "numbers(ss)".
- *								   Questo deve essere specificato come un assegnamento direttamente alla variabile array.
+ *		- nn <-- vacancies      	-> restituisce il numero di stanze vacanti, ossia, il numero di stanze che hanno 0 occupanti. L'insieme di queste stanze corrisponderà 
+ *						   all'immagine relazionale inversa dell'insieme delle stanze, e quindi il numero di stanze vacanti corrisponderà alla cardinalità di questo insieme.
+ *						   Infatti, la dimensione di questo insieme sarà della stessa dimensione del suo reciproco a cui sono assegnati i valori di 0, e che consiste
+ *						   per l'appunto dall'insieme di tutte le mappature corrispondenti al valore 0. DIfatti esso corrisponde al campo della funzione "numbers" limitata a 0!
+ *						   Così il numero di stanze vacanti sarà dato dall'espressione card(numbers |> {0}) che descrive l'operazione.
+ *	
+ 		- swap (rr, ss)			-> inverte gli occupanti delle stanze rr e ss. La precondizione richiede che le stanze debbano avere la stessa dimensione: o entrambi piccole,
+ *						   o entrambi grandi. L'array "numbers" traccia il numero di occupanti di ogni stanza scambiando i valori di "numbers(rr)" e "numbers(ss)".
+ *						   Questo deve essere specificato come un assegnamento direttamente alla variabile array.
  *								   
  *	
  *	<<Notazione>>	
@@ -57,12 +58,12 @@
  *	<=				minore o uguale
  *	=>				implicazione
  *	<=>				implicazione doppia (equivalenza)
- *	card()			cardinalità
- *	S[T]			immagine relazionale
+ *	card()				cardinalità
+ *	S[T]				immagine relazionale
  *	|>				restrizione di campo
- *	SIGMA(z).(P|E)	sommatoria di insieme
+ *	SIGMA(z).(P|E)			sommatoria di insieme
  *	|->				mappatura
- *	--> 			funzione totale
+ *	--> 				funzione totale
  *	
  */
 
