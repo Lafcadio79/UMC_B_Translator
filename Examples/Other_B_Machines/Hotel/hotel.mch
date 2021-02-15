@@ -2,29 +2,28 @@
  *
  *	<<Overview>>
  *	Esempio di utilizzo di array.
- *	Viene definita di seguito una Macchina che traccia il numero di ospiti che stanno nelle stanze di un hotel
+ *	Viene definita di seguito una Macchina che traccia il numero di ospiti che albergano nelle stanze di un hotel.
  *	La Macchina prende un parametro "sze", corrispondente alla capienza dell'hotel misurata in base al suo numero di stanze.
  *	Le stanze sono introdotte da un insieme ROOM la cui cardinalità è "sze".
  *	
  *
  *	<<Specifiche>>
  *	Si tiene traccia del numero di ospiti presenti in ogni stanza dell'hotel attraverso un array di numeri di dimensione variabile.
- *	Le stanze possono essere di due tipi (classi): small (che ospitano fino a 4 persone) e large (che ospitano fino a sei persone).
+ *	Le stanze possono essere di due tipi (o classi): small (capienza massima 4 persone) e large (capienza massima 6 persone).
  *	Le stanze piccole sono date dall'insieme "small" che è dichiarato nella clausola CONSTANTS e identificato come sottoinsieme
- *	di ROOM nella clausola PROPERTIES. In questo modo il massimo numero di persone che può essere registrato in ogni stanza è al massimo
- *	di sei unità., e così "numbers" è dichiarato come una funzione da ROOM a 0..6. Esso è dichiarato come una funzione totale, perché
- *	gli è richiesto di contenere informazioni circa il numero di occupanti in ogni stanza. Per questo una funzione parziale non è appropriata.
- *	Il requisito addizionale prevede che le stanze piccole non superino la capienza massima di quattro persone. Questo può essere
- *	espresso come il fatto che l'immagine di "small" attraverso "numbers" possa al massimo contenere un valore compreso tra 0 e 4 (numbers <: 0..4).
- *	Non c'è bisogno di dichiarare che le altre stanze possano ospitare fino ad un massimo di sei persone, dato che questo dettglio è già espresso
+ *	di ROOM nella clausola PROPERTIES. In questo modo il massimo numero di persone che può essere registrato in ogni stanza è 
+ *	di sei unità. Così "numbers" è dichiarato come una funzione che va da ROOM a 0..6. La dichiarazione è espressa come funzione totale, perché
+ *	deve riflettere il numero di occupanti in ogni stanza. Una funzione parziale non sarebbe appropriata.
+ *	Il requisito addizionale prevede che le stanze piccole non superino la capienza massima di 4 persone. Questo può essere
+ *	espresso come il fatto che l'immagine di "small" attraverso "numbers" possa al massimo contenere un valore compreso tra 0 e 4 (ossia numbers <: 0..4).
+ *	Non c'è bisogno di dichiarare che le altre stanze possano ospitare fino ad un massimo di 6 persone dato che questo dettglio è già espresso
  *	attraverso l'intervallo di tipo con cui "numbers" è dichiarato.
- *	L'array è inizializzato con tutti 0, riflettendo un hotel vuoto. SI osserva inoltre che la clausola INITIALISATION inizializza tutti gli
+ *	L'array è inizializzato con tutti 0, riflettendo un hotel vuoto. Inoltre, nella clausola INITIALISATION sono inizializzati tutti gli
  *	elementi dell'array a 0 con un singolo assegnamento. In un programma canonico questo sarebbe generalmente realizzato attraverso un ciclo
- *	impostando ad ogni iterazione l'elemento dell'array corrispondente all'i-esimo indice a 0. Ma in una macchina non siamo interessati a questo aspetto.
- *	Piuttosto si focalizza su cosa essa sia in grado di realizzare, e questo è espresso da un assegnamento diretto.
+ *	impostando ad ogni iterazione l'elemento i-esimo dell'array a 0.
  *	
  *	<<Operazioni>>
- *	Lo operazioni offerte dalla macchina sono diverse:
+ *	Lo operazioni offerte dalla Macchina sono diverse:
  *
  *		- checkin (rr, nn) 		-> prende come input un numero di stanza e un numero di ospiti (fino a 6) da assegnargli. Questa operazione richiede come precondizione
  *						   che la stanza non debba essere già occupata da qualcuno e che il numero di ospiti sia adatto alla capienza della stanza. Se tutte queste condizioni
