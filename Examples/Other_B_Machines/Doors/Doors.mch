@@ -21,7 +21,7 @@
 	La sintassi degli operatori utilizzati per questa macchina è la seguente:
 	
 		:		appartenenza
-		s<->t		mappa a
+		s<->t		è in relazione con
 		*		prodotto cartesiano
 		
 */
