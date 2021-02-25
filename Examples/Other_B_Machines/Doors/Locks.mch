@@ -12,7 +12,7 @@
 	:		appartenenza
 	~		relazione inversa
 	<->		relazione
-	S<:T	sottoinsieme di
+	S<:T		sottoinsieme di
 	=		uguaglianza
 	:=		assegnamento
 	& 		congiunzione
@@ -37,13 +37,13 @@ INITIALISATION status := DOOR * {locked}
 
 OPERATIONS
 	opendoor   (dd) = PRE  dd:DOOR & status(dd) = unlocked
-					  THEN opening(dd)
-					  END;
+			  THEN opening(dd)
+			  END;
 	unlockdoor (dd) = PRE  dd:DOOR
- 					  THEN status(dd) := unlocked
-					  END;
+ 			  THEN status(dd) := unlocked
+			  END;
 	lockdoor   (dd) = PRE  dd:DOOR & pos(dd) = closed
-					  THEN status(dd) := locked
-					  END
+			  THEN status(dd) := locked
+			  END
 					  
 END
