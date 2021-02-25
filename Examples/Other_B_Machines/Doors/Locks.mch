@@ -1,5 +1,7 @@
 /*
 
+        Un esempio di macchine nidificate (questa è la macchina che include)
+
 	Di seguito è definita la macchina Locks, che include la macchina Doors e ne "eredita", per così dire,
 	tutti i requisiti, compreso l'onere di garantirne l'invariante.
 	
