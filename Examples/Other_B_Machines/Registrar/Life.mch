@@ -24,10 +24,10 @@
 	S<:T			sottoinsieme di
 	s/\t			intersezione
 	s\/t			unione
-	A&B				congiunzione
-	E:T				appartenenza
+	A&B			congiunzione
+	E:T			appartenenza
 	E/:T			non appartenenza
-	S-t				sottrazione di un elemento da un insieme
+	S-t			sottrazione di un elemento da un insieme
 */
 
 
