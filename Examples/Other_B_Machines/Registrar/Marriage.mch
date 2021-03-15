@@ -23,12 +23,12 @@
 		
 	Notazione
 
-	:				appartenenza
+	:			appartenenza
 	S>+>T			funzione iniettiva parziale
 	dom(r)			dominio di una relazione
 	ran(r)			rango (o campo) di una relazione
-	|->				mappa in una relazione 1-a-1
-	~				relazione inversa (con tilde da posporre al nome della funzione)
+	|->			mappa in una relazione 1-a-1
+	~			relazione inversa (con tilde da posporre al nome della funzione)
 */
 
 
