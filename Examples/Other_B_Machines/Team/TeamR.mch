@@ -19,11 +19,11 @@
 	riflette la relazione tra lo spazio degli stati delle due macchine.
 
 	Notazione utilizzata:
-		:			appartenenza
-		:=			assegnamento
-		ran(S) 		rango (o campo)
-		~			relazione inversa (con tilde da posporre al nome della funzione)
-		%x.(P|E)	lambda abstraction
+	:		appartenenza
+	:=		assegnamento
+	ran(S) 		rango (o campo)
+	~		relazione inversa (con tilde da posporre al nome della funzione)
+	%x.(P|E)	lambda abstraction
 		
 */
 
