@@ -2,7 +2,7 @@
 
 	Questa macchina tiene traccia dell'analisi statistica dei risultati ottenuti
 	da ogni candidato (marks), e accetta informazioni su questi. Permette anche interrogazioni
-	sui risultati di ogni candidato e può restituirne la media dei risultati raggiunti.
+	sui risultati di ogni candidato e può restituire la media dei risultati raggiunti.
 	
 	
 	
