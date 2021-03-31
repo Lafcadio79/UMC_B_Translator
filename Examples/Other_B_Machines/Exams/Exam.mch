@@ -7,11 +7,11 @@
 	
 	
 	Notazione:
-	& 			      	congiunzione
-	:	      			  appartenenza
-	/:			        non appartenenza
-	:= 				      assegnamento
-	+->				      funzione parziale
+	& 		congiunzione
+	:		appartenenza
+	/:		non appartenenza
+	:= 		assegnamento
+	+->		funzione parziale
 	SIGMA(zz).(P|E)	sommatoria di elementi di un insieme
 
 */
