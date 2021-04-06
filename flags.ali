@@ -1,0 +1,147 @@
+V "GNAT Lib v2020"
+P ZX
+
+RN
+RV NO_ALLOCATORS
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_UNCHECKED_DEALLOCATION
+RV NO_DEFAULT_INITIALIZATION
+RV NO_IMPLICIT_LOOPS
+RV NO_ELABORATION_CODE
+
+U flags%s		flags.ads		f5b93a0e EE OO PK
+W ada%s			ada.ads			ada.ali
+W ada.unchecked_deallocation%s
+Z system%s		system.ads		system.ali
+Z system.exception_table%s  s-exctab.adb	s-exctab.ali
+Z system.standard_library%s  s-stalib.adb	s-stalib.ali
+
+D ada.ads		20200228061810 76789da1 ada%s
+D a-unccon.ads		20200228061810 0e9b276f ada.unchecked_conversion%s
+D a-uncdea.ads		20200228061810 eff36322 ada.unchecked_deallocation%s
+D flags.ads		20210321090232 1a4a592c flags%s
+D system.ads		20200228061810 32a08138 system%s
+D s-exctab.ads		20200228061810 54135002 system.exception_table%s
+D s-stalib.ads		20200228061810 6b7a13f2 system.standard_library%s
+G a e
+G c Z s s [free flags 16 14 none]
+G c Z s s [string_tableIP flags 18 9 none]
+G c Z s s [free flags 22 14 none]
+G c Z s s [string_tables_vectorIP flags 25 9 none]
+G c Z s s [free flags 30 14 none]
+G c Z s s [num_tableIP flags 33 9 none]
+G c Z s s [free flags 36 14 none]
+G c Z s s [bool_tableIP flags 39 9 none]
+G c Z s s [int_tableIP flags 9 9 none]
+G c Z s s [free flags 46 14 none]
+G c Z s s [free flags 54 14 none]
+G c Z s s [list_tableIP flags 57 9 none]
+G c Z s s [array_tableIP flags 61 9 none]
+G c Z s s [int64_list_tableIP flags 53 9 none]
+X 1 ada.ads
+16K9*Ada 20e8 4|2r6 16r26 23r10 31r10 36r26 46r26 55r6
+X 3 a-uncdea.ads
+20u15*Unchecked_Deallocation 4|2w10 16r30 23r14 31r14 36r30 46r30 55r10
+X 4 flags.ads
+4K9*Flags 216l5 216e10
+6I12*Int64{integer} 76r15 77r23 78r17 80r28 81r16
+8M9*Int32
+9A9*Int_Table(integer)<integer> 44r21 45r33 46r53 49r27
+14P9*String_Ref(string) 15r26 16r62 18r54 110r23
+15p4*Null_String{14P9}
+16U14*Free[3|20]
+18A9*String_Table(14P9)<integer> 19r24 20r36 21r61 23r38
+19a4*Empty_String_Table{18A9}
+20P9*String_Table_Ref(18A9) 21r37 23r52 25r62
+21p4*Empty_String_Table_Ref{20P9}
+22U14*Free[3|20]
+25A9*String_Tables_Vector(20P9)<integer> 26r25 27r44 29r13 31r38
+26a4*Empty_String_Tables{25A9}
+27P9*String_Tables_Vector_Ref(25A9) 28r45 31r60
+28p4*Empty_String_Tables_Vector_Ref{27P9}
+30U14*Free[3|20]
+33A9*Num_Table(natural)<integer> 34r21 35r33 36r53
+34a4*Empty_Num_Table{33A9}
+35P9*Num_Table_Ref(33A9) 36r63 57r52
+36U14*Free[3|20]
+39A9*Bool_Table(boolean)<integer> 40r22 41r34
+40a4*Empty_Bool_Table{39A9}
+41P9*Bool_Table_Ref(39A9)
+44a4*Empty_Int_Table{9A9}
+45P9*Int_Table_Ref(9A9) 46r63 61r53
+46U14*Free[3|20]
+49A12*Int64_Table{9A9}<integer> 50r23 51r35 52r59 55r33
+50a4*Empty_Int64_Table{49A12}
+51P9*Int64_Table_Ref(49A12) 52r36 53r58 55r45
+52p4*Empty_Int64_Table_Ref{51P9}
+53A9*Int64_List_Table(51P9)<integer>
+54U14*Free[3|20]
+57A9*List_Table(35P9)<integer> 58r22 59r34
+58a4*Empty_List_Table{57A9}
+59P9*List_Table_Ref(57A9)
+61A9*Array_Table(45P9)<integer> 62r23 63r35
+62a4*Empty_Array_Table{61A9}
+63P9*Array_Table_Ref(61A9)
+66b4*terse{boolean}
+68X4*Parsing_Error
+69X4*UCTL_Error
+70X4*Non_Monotone
+72b4*Verbose_Eval{boolean}
+74b4*ACTL_Compatibility{boolean}
+76i4*All_Steps{6I12}
+77i4*Done_Computations{6I12}
+78i4*Done_States{6I12}
+80i4*All_Computations_Count{6I12}
+81i4*All_States{6I12}
+83i4*Default_LTS_Depth{natural}
+84i4*Max_Explanation_Depth{natural}
+85i4*Max_LTS_Depth{natural}
+86i4*Top_LTS_Depth{natural}
+87i4*Depth_Increment{natural}
+88b4*Static_MAX_Depth{boolean}
+90b4*NoGroundData{boolean}
+91b4*NoExplanations{boolean}
+92b4*AutoExplanations{boolean}
+93b4*ShowSequenceDiagram{boolean}
+94b4*NonInteractive{boolean}
+95b4*Ground_Action_Labels_Needed{boolean}
+97i4*QLimit{natural}
+98i4*NLimit{natural}
+99i4*VLimit{natural}
+101b4*livefts{boolean}
+106b4*Runtime_Errors_Enabled{boolean}
+107i4*Runtime_Errors_Count{natural}
+109i4*Runtime_Error_Val{integer}
+110p4*Runtime_Error_Msg{14P9}
+112b4*Priorities_Enabled{boolean}
+113b4*Priorities_Defined{boolean}
+114i4*Max_Evolutions_Depth{positive}
+146b4*HTML_Mode{boolean}
+147b4*Debug{boolean}
+151b4*Display_Expanded_Terms{boolean}
+152b4*Expanded_Tau{boolean}
+156i4*State_NickName{positive}
+157i4*State_Structure{positive}
+158i4*Detailed_Label{positive}
+159i4*Visible_Label{positive}
+160i4*Target_NickName{positive}
+161i4*Target_State_Structure{positive}
+162i4*Applied_Rule{positive}
+163i4*Abstract_Edge_Labels{positive}
+164i4*Ground_Edge_Labels{positive}
+166b4*Observe_Transition_Labels{boolean}
+167b4*Labels_in_Brakets{boolean}
+168b4*NoLabels_as_I{boolean}
+169b4*NoLabels_as_tau{boolean}
+171b4*Product_Families{boolean}
+172b4*Lazy_Parsing{boolean}
+173b4*Almost_Lazy_Parsing{boolean}
+175i4*taskstacksize{integer}
+177i4*Vectors_Max{natural} 178r29 178r43
+178i4*Max_Elements{natural}
+179i4*Cache_Module{natural} 180r27
+180i4*Key_Module{natural}
+183b4*ThreadSafe{boolean}
+184i4*Cores{natural}
+185i4*ModelCores{natural}
+

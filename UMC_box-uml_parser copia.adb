@@ -456,6 +456,19 @@ use UML_Types;
         Item_Size := Item_Size +1;
         StringBuffer(Item_Size) := Input_line(Current_Position);
         -- this is the last char of the item
+--        if Current_Position+2 <=  Line_Length and then
+--           Input_Line(Current_Position..Current_Position+2)= ")->" then
+--           Item_Size := Item_Size+2;
+--           StringBuffer(2..3) := "->";
+--           Current_Position := Current_Position +3;
+--           exit;
+--        elsif Current_Position+1 <= Line_Length and then
+ --          Input_Line(Current_Position..Current_Position+1)= "-(" then
+--           Item_Size := Item_Size+1;
+--           StringBuffer(2) := '(';
+--           Current_Position := Current_Position +2;
+--           exit;
+--        elsif Current_Position+1 <= Line_Length and then
         if Current_Position+1 <= Line_Length and then
            Input_Line(Current_Position..Current_Position+1)= ".." then
            Item_Size := Item_Size+1;
@@ -583,7 +596,6 @@ use UML_Types;
   -- sets Current_Token to 1
   --  block comments within  /* ... */  are ignored !!!
   procedure  Read_Tokens(F:File_Type) is
-    --  1000 IS NOT an HARD LIMIT. Just the slot size used to fill Tokens table
     Buffer: Tokens_Table(1..1000);  -- Tokens is a vector of Buffers
     Count: Natural := 0;
     Tmp: Token;
@@ -777,75 +789,78 @@ subtype Action_Ref is UML_Types.Action_Ref;
       if This_kind.all = "obj" then
         This_Var.Kind := Object;
         if Current_Item = "[" then
-          This_Var.Kind := Objvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Objmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Objcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Objmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+          else
+            This_Var.Kind := Objvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       elsif This_kind.all = "bool" then
         This_Var.Kind :=  Bool;
         if Current_Item = "[" then
-          This_Var.Kind := Boolvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Boolmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Boolcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Boolmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+          else
+            This_Var.Kind := Boolvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       elsif This_kind.all /= "int"  then --  must be a Class Name
         This_Var.Kind := Object;
         This_Var.Typeinfo := Check_Class(This_kind.all);
         if Current_Item = "[" then
-          This_Var.Kind := Boolvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Boolmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
-              This_Var.Kind := Boolcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "["
+              This_Var.Kind := Objcube;
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Objmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+          else
+            This_Var.Kind := Objvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       else
-        This_Var.Kind := Number;
         if Current_Item = "[" then
-          This_Var.Kind := Numvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Nummatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Numcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Nummatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+          else
+            This_Var.Kind := Numvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       end if;
     end if;
@@ -1347,77 +1362,64 @@ subtype Action_Ref is UML_Types.Action_Ref;
         if This_kind.all = "obj" then
           This_Event.Return_Type := Object;
           if Current_Item = "[" then
-          This_Event.Return_Type := Objvector;
-          Skip_Token ("["); 
-          if Current_Item(1) in '0'..'9' then
-            --?  This_Var.StaticSize := Integer'Value(Current_Item);
-            Skip_Token; -- "number"
-            Skip_Token("]"); 
-          elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Event.Return_Type := Objmatrix;
+            Skip_Token; -- "["
+            if Current_Item = "[" then
               Skip_Token; -- "["
               if Current_Item = "[" then
+                Skip_Token; -- "["
                 This_Event.Return_Type := Objcube;
-              Skip_Token("["); 
                 Skip_Token("]");
+              else
+                This_Event.Return_Type := Objmatrix;
               end if;
-            Skip_Token("]");
+              Skip_Token("]"); -- "]"
+            else
+              This_Event.Return_Type := Objvector;
             end if;
-          Skip_Token ("]"); 
+            Skip_Token("]"); -- "]"
           end if;
         elsif This_kind.all = "bool" then
           This_Event.Return_Type :=  Bool;
           if Current_Item = "[" then
-          This_Event.Return_Type := Boolvector;
-          Skip_Token ("["); 
-          if Current_Item(1) in '0'..'9' then
-            --?  This_Var.StaticSize := Integer'Value(Current_Item);
-            Skip_Token; -- "number"
-            Skip_Token("]"); 
-          elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Event.Return_Type := Boolmatrix;
+            Skip_Token; -- "["
+           if Current_Item = "[" then
               Skip_Token; -- "["
               if Current_Item = "[" then
+                Skip_Token("]"); -- "["
                 This_Event.Return_Type := Boolcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+                Skip_Token("]"); -- "]"
+              else
+                This_Event.Return_Type := Boolmatrix;
               end if;
-            Skip_Token("]");
+              Skip_Token("]"); -- "]"
+            else
+              This_Event.Return_Type := Boolvector;
             end if;
-          Skip_Token ("]"); 
+            Skip_Token("]"); -- "]"
           end if;
         elsif This_kind.all = "int" then
           This_Event.Return_Type :=  Number;
           if Current_Item = "[" then
-          This_Event.Return_Type := Numvector;
-          Skip_Token ("["); 
-          if Current_Item(1) in '0'..'9' then
-            --?  This_Var.StaticSize := Integer'Value(Current_Item);
-            Skip_Token; -- "number"
-            Skip_Token("]"); 
-          elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Event.Return_Type := Nummatrix;
+            Skip_Token; -- "["
+           if Current_Item = "[" then
               Skip_Token; -- "["
               if Current_Item = "[" then
+                Skip_Token; -- "["
                 This_Event.Return_Type := Numcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+                Skip_Token; -- "]"
+              else
+                This_Event.Return_Type := Nummatrix;
               end if;
-            Skip_Token("]");
+              Skip_Token("]"); -- "]"
+            else
+              This_Event.Return_Type := Numvector;
             end if;
-          Skip_Token ("]"); 
+            Skip_Token("]"); -- "]"
           end if;
         else  -- Kind = Class_Name
           This_Event.Return_Type:= Object;
           if Current_Item = "[" then
             Skip_Token; -- "["
-            if Current_Item(1) in '0'..'9' then
-              --?  This_Var.StaticSize := Integer'Value(Current_Item);
-              Skip_Token; -- "number"
-            end if;
             Skip_Token("]"); -- "]"
             This_Event.Return_Type := Objvector;
           end if;
@@ -1578,101 +1580,102 @@ subtype Action_Ref is UML_Types.Action_Ref;
         This_Var.Kind := Object;
         if Current_Item = "[" then
           This_Var.Initial := NullStruct.Simple;
-          This_Var.Kind := Objvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item(1) in '0'..'9' then
             This_Var.StaticSize := Integer'Value(Current_Item);
             This_Var.Initial := null;
+            This_Var.Kind := Objvector;
             Skip_Token; -- "number"
-            Skip_Token("]"); 
           elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Objmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Objcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Objmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+--        else
+--            This_Var.Kind := Objvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       elsif This_kind.all = "bool" then
         This_Var.Kind :=  Bool;
         This_Var.Initial := BoolFalse.Simple;
         if Current_Item = "[" then
           This_Var.Initial := NullStruct.Simple;
-          This_Var.Kind := Boolvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item(1) in '0'..'9' then
             This_Var.StaticSize := Integer'Value(Current_Item);
             This_Var.Initial := null;
+            This_Var.Kind := Boolvector;
             Skip_Token; -- "number"
-            Skip_Token("]"); 
           elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Boolmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Boolcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Boolmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+--        else
+--            This_Var.Kind := Boolvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       elsif This_kind.all = "int" then
         This_Var.Kind :=  Number;
         This_Var.Initial := Zero.Simple;
         if Current_Item = "[" then
           This_Var.Initial := NullStruct.Simple;
-          This_Var.Kind := Numvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item(1) in '0'..'9' then
             This_Var.StaticSize := Integer'Value(Current_Item);
             This_Var.Initial := null;
+            This_Var.Kind := Numvector;
             Skip_Token; -- "number"
-            Skip_Token("]"); 
           elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Nummatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Numcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Nummatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+--          else
+--            This_Var.Kind := Numvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       else  -- Kind = Class_Name
         This_Var.Kind := Object;
         This_Var.Initial := NullObject.Simple;
         This_Var.Typeinfo := Check_Class(This_kind.all);
         if Current_Item = "[" then
-          This_Var.Initial := NullStruct.Simple;
-          This_Var.Kind := Objvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item(1) in '0'..'9' then
             This_Var.StaticSize := Integer'Value(Current_Item);
             This_Var.Initial := null;
+            This_Var.Kind := Objvector;
             Skip_Token; -- "number"
-            Skip_Token("]"); 
           elsif Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Var.Kind := Objmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Var.Kind := Objcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Var.Kind := Objmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       end if;  -- ": id"
       end if;  -- ":0..n"
@@ -2601,6 +2604,7 @@ subtype Action_Ref is UML_Types.Action_Ref;
          Put_Line (Current_Error, Exception_Message(Event));
         Close(F);
         raise;
+        
     end Parse;
   -----------------------------------------------------------------
 
@@ -4130,6 +4134,7 @@ subtype Action_Ref is UML_Types.Action_Ref;
     --if Tokens(Current_Token).Item(1) ='$' then
     --    if Op.Kind=ActionKind and then
     --      Op.Left(1).LOp.all /= Tokens(Current_Token).Item.all then
+    --      --QQQQ
     --      Give_Error("ERROR; only signal names or stringliterals can appear as main edge labels");
     --      raise Parsing_Error;
     --    end if;
@@ -6394,63 +6399,66 @@ subtype Action_Ref is UML_Types.Action_Ref;
         This_Action.TVar.Kind := Object;
         if Current_Item = "[" then
           Skip_Token; -- "["
-          Skip_Token("]"); 
+          Skip_Token; -- "]"
           This_Action.TVar.Kind := Objvector;
         end if;
       elsif This_kind.all = "bool" then
         This_Action.TVar.Kind :=  Bool;
         if Current_Item = "[" then
-          This_Action.TVar.Kind := Boolvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Action.TVar.Kind := Boolmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Action.TVar.Kind := Boolcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Action.TVar.Kind := Boolmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+          else
+            This_Action.TVar.Kind := Boolvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       elsif This_kind.all = "int" then
         This_Action.TVar.Kind :=  Number;
         if Current_Item = "[" then
-          This_Action.TVar.Kind := Numvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Action.TVar.Kind := Nummatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Action.TVar.Kind := Numcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Action.TVar.Kind := Nummatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]"
+          else
+            This_Action.TVar.Kind := Numvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]"
         end if;
       else  -- Kind = Class_Name
         This_Action.TVar.Kind := Object;
         This_Action.TVar.Typeinfo := Check_Class(This_kind.all);
         if Current_Item = "[" then
-          This_Action.TVar.Kind := Objvector;
-          Skip_Token ("["); 
+          Skip_Token; -- "["
           if Current_Item = "[" then
-            -- var: obj[[]]; 
-            This_Action.TVar.Kind := Objmatrix;
             Skip_Token; -- "["
             if Current_Item = "[" then
+              Skip_Token; -- "["
               This_Action.TVar.Kind := Objcube;
-              Skip_Token("["); 
-              Skip_Token("]");
+              Skip_Token; -- "]"
+            else
+              This_Action.TVar.Kind := Objmatrix;
             end if;
-            Skip_Token("]");
+            Skip_Token; -- "]";
+          else
+            This_Action.TVar.Kind := Objvector;
           end if;
-          Skip_Token ("]"); 
+          Skip_Token; -- "]";
         end if;
       end if;
       --
